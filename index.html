@@ -1,0 +1,2117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#030305">
+  <title>Motion Painter | Paint Animation in Blender</title>
+  <meta name="description" content="Motion Painter is a Blender add-on for drawing editable motion paths directly in the 3D Viewport.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #030305;
+      --surface: #08080c;
+      --surface-2: #0d0d13;
+      --line: rgba(255, 255, 255, .11);
+      --muted: #a5a5b2;
+      --white: #f8f8fb;
+      --cyan: #00e5ff;
+      --violet: #925cff;
+      --pink: #ff2aa1;
+      --orange: #ff8a1e;
+      --green: #82ff56;
+      --content: 1180px;
+      --logo-size: clamp(4rem, 11.5vw, 9.7rem);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--black);
+    }
+
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 34%, rgba(0, 229, 255, .035), transparent 27rem),
+        radial-gradient(circle at 86% 58%, rgba(255, 42, 161, .035), transparent 30rem),
+        var(--black);
+      color: var(--white);
+      font-family: "Montserrat", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(calc(100% - 32px), var(--content));
+      margin-inline: auto;
+    }
+
+    .eyebrow,
+    .section-index,
+    .chip,
+    .placeholder-label,
+    .roadmap-status {
+      font-family: "DM Mono", monospace;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .hero-graphic {
+      position: relative;
+      height: clamp(460px, 50vw, 560px);
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+      isolation: isolate;
+    }
+
+    #hero-trails {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .logo-stage {
+      position: absolute;
+      top: 31%;
+      left: 50%;
+      z-index: 2;
+      width: min(94vw, 94rem);
+      display: grid;
+      justify-items: center;
+      transform: translate(-50%, -50%);
+      isolation: isolate;
+    }
+
+    .logo-word {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      font-size: var(--logo-size);
+      font-weight: 900;
+      line-height: .78;
+      letter-spacing: -.06em;
+    }
+
+    .logo-letter {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      color: #fff;
+      will-change: transform;
+      transform: translateZ(0);
+    }
+
+    .logo-motion { padding-bottom: .19em; }
+
+    .logo-motion .logo-letter {
+      animation: sine-wave 1.8s cubic-bezier(.45, 0, .55, 1) infinite;
+      animation-delay: calc(var(--i) * -.16s);
+    }
+
+    @keyframes sine-wave {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      25% { transform: translate3d(0, -.13em, 0); }
+      50% { transform: translate3d(0, 0, 0); }
+      75% { transform: translate3d(0, .13em, 0); }
+    }
+
+    .orbital {
+      position: absolute;
+      inset: -7%;
+      pointer-events: none;
+      animation: orbit 1.35s linear infinite;
+      animation-delay: calc(var(--i) * -.21s);
+    }
+
+    .orbital::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      width: clamp(5px, .075em, 12px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #fff;
+      translate: -50% -50%;
+      box-shadow: 0 0 5px #fff, 0 0 13px var(--cyan), 0 0 28px var(--pink);
+    }
+
+    @keyframes orbit { to { transform: rotate(1turn); } }
+
+    .logo-painter {
+      font-size: clamp(3.35rem, 9.6vw, 8.15rem);
+      letter-spacing: .015em;
+    }
+
+    .logo-painter .logo-letter { will-change: transform; }
+
+    .hero-copy {
+      position: relative;
+      padding: 62px 0 82px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero-copy .shell { position: relative; }
+
+    .motion-companion {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      width: var(--size, 9px);
+      height: var(--size, 9px);
+      border: 1px solid var(--companion-color);
+      border-radius: var(--radius, 2px);
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 0 10px var(--companion-color), 0 0 24px color-mix(in srgb, var(--companion-color) 55%, transparent);
+      transition: opacity .25s ease;
+      will-change: transform;
+    }
+
+    .hero-copy.is-tracking .motion-companion { opacity: .82; }
+
+    .hero-copy::before {
+      content: "";
+      position: absolute;
+      top: -150px;
+      left: 50%;
+      width: min(820px, 90vw);
+      height: 330px;
+      translate: -50% 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse, rgba(95, 62, 255, .1), transparent 70%);
+    }
+
+    .eyebrow {
+      position: relative;
+      margin: 0 0 22px;
+      color: var(--cyan);
+      font-size: 11px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    .hero-title {
+      position: relative;
+      max-width: 930px;
+      margin: 0 auto 28px;
+      font-size: clamp(2.7rem, 6.8vw, 6.2rem);
+      line-height: .96;
+      letter-spacing: -.065em;
+      font-weight: 700;
+    }
+
+    .gradient-text {
+      color: transparent;
+      background: linear-gradient(90deg, var(--orange), var(--pink) 43%, var(--violet) 68%, var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero-description {
+      position: relative;
+      max-width: 790px;
+      margin: 0 auto;
+      color: #c5c5cf;
+      font-size: clamp(1rem, 1.8vw, 1.24rem);
+      line-height: 1.75;
+    }
+
+    .hero-chips {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 34px;
+    }
+
+    .launch-offer {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      margin-bottom: 28px;
+      padding: 9px 0;
+      border: 1px solid rgba(255,138,30,.38);
+      border-radius: 13px;
+      background: linear-gradient(90deg, rgba(255,138,30,.09), rgba(255,42,161,.08), rgba(146,92,255,.08));
+      box-shadow: 0 0 34px rgba(255,42,161,.13), inset 0 0 30px rgba(255,138,30,.035);
+    }
+
+    .launch-offer::before,
+    .launch-offer::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 2;
+      width: 72px;
+      pointer-events: none;
+    }
+
+    .launch-offer::before { left: 0; background: linear-gradient(90deg, #050507, transparent); }
+    .launch-offer::after { right: 0; background: linear-gradient(-90deg, #050507, transparent); }
+
+    .launch-track {
+      display: flex;
+      width: max-content;
+      will-change: transform;
+      animation: early-access-marquee 15s linear infinite;
+    }
+
+    .launch-sequence {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding-right: 32px;
+      white-space: nowrap;
+    }
+
+    .launch-message {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font: 500 9px/1 "DM Mono", monospace;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .launch-message.beta-badge {
+      color: #fff;
+      background: linear-gradient(90deg, rgba(255,138,30,.22), rgba(255,42,161,.2));
+      border: 1px solid rgba(255,138,30,.42);
+    }
+
+    .launch-message.discount-badge {
+      color: #050507;
+      background: linear-gradient(90deg, var(--orange), var(--pink));
+      box-shadow: 0 0 22px rgba(255,42,161,.28);
+    }
+
+    .launch-message.updates-message {
+      color: #e4dffd;
+      border: 1px solid rgba(146,92,255,.36);
+      background: rgba(146,92,255,.1);
+    }
+
+    .launch-separator {
+      color: var(--cyan);
+      font-size: 11px;
+      text-shadow: 0 0 12px var(--cyan);
+    }
+
+    @keyframes early-access-marquee {
+      from { transform: translate3d(-50%,0,0); }
+      to { transform: translate3d(0,0,0); }
+    }
+
+    .chip {
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #d5d5dc;
+      background: rgba(255, 255, 255, .025);
+      font-size: 9px;
+    }
+
+    .section {
+      padding: 92px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-head {
+      max-width: 810px;
+      margin-bottom: 44px;
+    }
+
+    .section-index {
+      display: inline-flex;
+      margin-bottom: 22px;
+      padding: 7px 11px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      color: var(--cyan);
+      font-size: 9px;
+    }
+
+    #film .section-index { color: var(--orange); }
+    #features .section-index { color: var(--pink); }
+    #roadmap .section-index { color: var(--violet); }
+
+    .section-title {
+      margin-bottom: 18px;
+      font-size: clamp(2.25rem, 5vw, 4.6rem);
+      line-height: 1.02;
+      letter-spacing: -.055em;
+      font-weight: 700;
+    }
+
+    .section-lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.6vw, 1.16rem);
+      line-height: 1.7;
+    }
+
+    .video-frame {
+      --video-x: 50%;
+      --video-y: 50%;
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 18px;
+      background: #050507;
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, .04), 0 32px 100px rgba(69, 34, 255, .13);
+    }
+
+    .video-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      border: 1px solid transparent;
+      border-radius: inherit;
+      opacity: 0;
+      background: radial-gradient(190px circle at var(--video-x) var(--video-y), rgba(255,138,30,.48), rgba(255,42,161,.22) 32%, transparent 70%) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      transition: opacity .25s ease;
+    }
+
+    .video-frame.is-awake::after { opacity: 1; }
+
+    .video-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .feature-list {
+      display: grid;
+      gap: 78px;
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: minmax(0, .8fr) minmax(0, 1.25fr);
+      align-items: center;
+      gap: clamp(32px, 6vw, 76px);
+    }
+
+    .feature:nth-child(even) .feature-copy { order: 2; }
+    .feature:nth-child(even) .feature-media { order: 1; }
+
+    .feature-number {
+      margin-bottom: 18px;
+      color: var(--cyan);
+      font: 500 10px/1 "DM Mono", monospace;
+      letter-spacing: .15em;
+    }
+
+    .feature:nth-child(4n + 1) { --accent: var(--orange); }
+    .feature:nth-child(4n + 2) { --accent: var(--pink); }
+    .feature:nth-child(4n + 3) { --accent: var(--cyan); }
+    .feature:nth-child(4n) { --accent: var(--violet); }
+    .feature:nth-child(5) { --accent: var(--green); }
+    .feature .feature-number { color: var(--accent); }
+
+    .feature h3 {
+      margin-bottom: 18px;
+      font-size: clamp(1.75rem, 3.5vw, 3.1rem);
+      line-height: 1.06;
+      letter-spacing: -.045em;
+    }
+
+    .feature p {
+      margin-bottom: 22px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag-list span {
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #d5d5dd;
+      font: 400 9px/1 "DM Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      transition: transform .22s cubic-bezier(.2,.8,.2,1), color .2s ease, border-color .2s ease, box-shadow .2s ease;
+      will-change: transform;
+    }
+
+    .tag-list span.is-near {
+      color: #fff;
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .feature-media {
+      --mx: 50%;
+      --my: 50%;
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      position: relative;
+      min-height: 390px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(101, 68, 255, .1), transparent 55%),
+        #07070a;
+      background-size: 28px 28px, 28px 28px, auto, auto;
+    }
+
+    .feature-media.has-gif {
+      min-height: 0;
+      aspect-ratio: 16 / 9;
+      background: #050507;
+    }
+
+    .feature-media.has-gif img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .feature-media.has-gif small {
+      z-index: 2;
+      padding: 7px 9px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      color: #e4e4ea;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .feature-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .placeholder-label {
+      position: relative;
+      z-index: 2;
+      padding: 10px 13px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      background: rgba(0,0,0,.72);
+      color: #d9d9e1;
+      font-size: 9px;
+      backdrop-filter: blur(12px);
+    }
+
+    .feature-media small {
+      position: absolute;
+      right: 18px;
+      bottom: 16px;
+      color: #6f6f7b;
+      font: 400 9px/1 "DM Mono", monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .brush-wall {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 44px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--line);
+    }
+
+    .feature-brushes { row-gap: 32px; }
+
+    .feature-brushes .brush-wall {
+      grid-column: 1 / -1;
+      order: 3;
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .brush-wall span {
+      min-height: 82px;
+      display: grid;
+      place-items: center;
+      padding: 12px 7px;
+      color: #d2d2da;
+      background: #08080c;
+      font: 500 9px/1.3 "DM Mono", monospace;
+      letter-spacing: .06em;
+      text-align: center;
+      text-transform: uppercase;
+      transition: color .2s ease, background .2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .brush-wall span:hover {
+      color: white;
+      background: linear-gradient(135deg, rgba(255,42,161,.12), rgba(0,229,255,.09)), #0c0c12;
+    }
+
+    .brush-wall span:focus-visible {
+      position: relative;
+      z-index: 1;
+      outline: 1px solid var(--cyan);
+      outline-offset: -3px;
+    }
+
+    .brush-wall span.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(255,42,161,.24), rgba(0,229,255,.2)), #0c0c12;
+      box-shadow: inset 0 0 28px rgba(146,92,255,.2);
+    }
+
+    .brush-wall .custom-brush {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(255,138,30,.12), rgba(255,42,161,.13) 45%, rgba(0,229,255,.1)),
+        #0b0b10;
+    }
+
+    .brush-wall .custom-brush::before {
+      content: "+";
+      margin-right: 7px;
+      color: var(--pink);
+      font-size: 13px;
+      text-shadow: 0 0 10px var(--pink);
+    }
+
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .roadmap-card {
+      --mx: 50%;
+      --my: 50%;
+      position: relative;
+      min-height: 320px;
+      overflow: hidden;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--surface);
+    }
+
+    .roadmap-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in srgb, var(--card-color) 15%, transparent), transparent 72%);
+      transition: opacity .25s ease;
+    }
+
+    .roadmap-card:hover::after { opacity: 1; }
+
+    .roadmap-spark {
+      position: absolute;
+      z-index: 0;
+      left: var(--x);
+      top: var(--y);
+      width: var(--s);
+      height: var(--s);
+      border-radius: 50%;
+      background: var(--card-color);
+      opacity: .08;
+      pointer-events: none;
+      box-shadow: 0 0 12px var(--card-color);
+      transition: transform .65s cubic-bezier(.16,1,.3,1), opacity .35s ease;
+    }
+
+    .roadmap-card:hover .roadmap-spark {
+      opacity: .55;
+      transform: translate(var(--dx), var(--dy)) scale(1.5);
+    }
+
+    .roadmap-card > :not(.roadmap-spark) { position: relative; z-index: 1; }
+
+    .roadmap-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--card-color), transparent);
+    }
+
+    .roadmap-card.current { --card-color: var(--green); border-color: rgba(130,255,86,.28); }
+    .roadmap-card.rig { --card-color: var(--violet); }
+    .roadmap-card.physics { --card-color: var(--cyan); }
+
+    .roadmap-status {
+      display: inline-block;
+      margin-bottom: 48px;
+      color: var(--card-color);
+      font-size: 9px;
+    }
+
+    .roadmap-card h3 {
+      margin-bottom: 15px;
+      font-size: 1.7rem;
+      letter-spacing: -.035em;
+    }
+
+    .roadmap-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .95rem;
+      line-height: 1.65;
+    }
+
+    .roadmap-order {
+      position: absolute;
+      right: 24px;
+      bottom: 18px;
+      color: rgba(255,255,255,.055);
+      font-size: 5rem;
+      font-weight: 900;
+      letter-spacing: -.08em;
+    }
+
+    .before-buy {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,138,30,.025), rgba(255,42,161,.018));
+    }
+
+    .before-buy .section-index { color: var(--orange); }
+
+    .before-buy::before {
+      content: "";
+      position: absolute;
+      top: -180px;
+      right: -140px;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255,42,161,.09), transparent 68%);
+    }
+
+    .before-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .before-card {
+      padding: 30px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 17px;
+      background: rgba(8,8,12,.82);
+    }
+
+    .before-card:first-child { border-color: rgba(255,138,30,.3); }
+    .before-card:last-child { border-color: rgba(146,92,255,.28); }
+
+    .before-label {
+      display: block;
+      margin-bottom: 30px;
+      color: var(--orange);
+      font: 500 9px/1 "DM Mono", monospace;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .before-card:last-child .before-label { color: var(--violet); }
+
+    .before-card h3 {
+      margin-bottom: 14px;
+      font-size: clamp(1.45rem, 2.7vw, 2.15rem);
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+
+    .before-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .before-card em { color: #dedee7; }
+
+    .before-card a {
+      color: var(--orange);
+      font-weight: 700;
+      text-decoration-color: rgba(255,138,30,.45);
+      text-underline-offset: 3px;
+      transition: color .2s ease, text-decoration-color .2s ease;
+    }
+
+    .before-card a:hover {
+      color: var(--pink);
+      text-decoration-color: var(--pink);
+    }
+
+    .early-access-note {
+      position: relative;
+      margin-top: 16px;
+      padding: 18px 22px;
+      border-left: 2px solid var(--pink);
+      color: #c7c7d0;
+      background: rgba(255,42,161,.04);
+      font-size: .92rem;
+      line-height: 1.65;
+    }
+
+    .closing {
+      padding: 90px 0 98px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+    }
+
+    .closing h2 {
+      max-width: 760px;
+      margin: 0 auto 22px;
+      font-size: clamp(2.5rem, 6vw, 5.7rem);
+      line-height: .98;
+      letter-spacing: -.06em;
+      cursor: default;
+    }
+
+    .closing .gradient-text { display: inline-block; will-change: transform, filter; }
+
+    .closing p {
+      max-width: 620px;
+      margin: 0 auto;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 900px) {
+      .feature { grid-template-columns: 1fr; gap: 30px; }
+      .feature:nth-child(even) .feature-copy,
+      .feature:nth-child(even) .feature-media { order: initial; }
+      .feature-media { min-height: 330px; }
+      .brush-wall { grid-template-columns: repeat(4, 1fr); }
+      .roadmap-grid { grid-template-columns: 1fr; }
+      .before-grid { grid-template-columns: 1fr; }
+      .roadmap-card { min-height: 250px; }
+    }
+
+    @media (max-width: 560px) {
+      :root { --logo-size: clamp(3rem, 16.2vw, 5rem); }
+      .shell { width: min(calc(100% - 24px), var(--content)); }
+      .hero-graphic { height: 460px; }
+      .logo-stage { top: 31%; }
+      .logo-painter { font-size: clamp(2.55rem, 13.6vw, 4.3rem); }
+      .hero-copy { padding: 52px 0 66px; }
+      .section { padding: 68px 0; }
+      .section-head { margin-bottom: 32px; }
+      .feature-list { gap: 60px; }
+      .feature-media { min-height: 260px; border-radius: 14px; }
+      .brush-wall { grid-template-columns: repeat(2, 1fr); }
+      .video-frame { border-radius: 12px; }
+      .launch-offer { border-radius: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .logo-motion .logo-letter,
+      .orbital,
+      #hero-trails { display: none; }
+      .feature-canvas,
+      .motion-companion,
+      .roadmap-spark { display: none; }
+      .launch-track { animation: none; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero-graphic" id="hero-animation" aria-label="Motion Painter animated logo">
+    <canvas id="hero-trails" aria-hidden="true"></canvas>
+    <div class="logo-stage">
+      <h1 class="sr-only">Motion Painter</h1>
+      <div class="logo-word logo-motion" aria-hidden="true">
+        <span class="logo-letter" style="--i:0">M</span>
+        <span class="logo-letter is-o" style="--i:1">O<span class="orbital dot-source"></span></span>
+        <span class="logo-letter" style="--i:2">T</span>
+        <span class="logo-letter" style="--i:3">I</span>
+        <span class="logo-letter is-o" style="--i:4">O<span class="orbital dot-source"></span></span>
+        <span class="logo-letter" style="--i:5">N</span>
+      </div>
+      <div class="logo-word logo-painter" aria-hidden="true">
+        <span class="logo-letter trail-source" style="--burst-x:-1.3em;--burst-y:1.55em;--burst-r:-23deg">P</span>
+        <span class="logo-letter trail-source" style="--burst-x:-.72em;--burst-y:2.05em;--burst-r:18deg">A</span>
+        <span class="logo-letter trail-source" style="--burst-x:-.28em;--burst-y:1.42em;--burst-r:-31deg">I</span>
+        <span class="logo-letter trail-source" style="--burst-x:.18em;--burst-y:2.2em;--burst-r:14deg">N</span>
+        <span class="logo-letter trail-source" style="--burst-x:.66em;--burst-y:1.62em;--burst-r:-17deg">T</span>
+        <span class="logo-letter trail-source" style="--burst-x:1.02em;--burst-y:2.12em;--burst-r:27deg">E</span>
+        <span class="logo-letter trail-source" style="--burst-x:1.48em;--burst-y:1.48em;--burst-r:-21deg">R</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-copy">
+      <div class="shell">
+        <div class="launch-offer" role="note" aria-label="Early Access launch offer">
+          <div class="launch-track">
+            <div class="launch-sequence">
+              <span class="launch-message beta-badge">Motion Painter is in Early Access / Beta</span>
+              <span class="launch-separator">✦</span>
+              <span class="launch-message discount-badge">Save 33% during Early Access</span>
+              <span class="launch-separator">✦</span>
+              <span class="launch-message updates-message">Buy now: future updates included</span>
+              <span class="launch-separator">✦</span>
+            </div>
+            <div class="launch-sequence" aria-hidden="true">
+              <span class="launch-message beta-badge">Motion Painter is in Early Access / Beta</span>
+              <span class="launch-separator">✦</span>
+              <span class="launch-message discount-badge">Save 33% during Early Access</span>
+              <span class="launch-separator">✦</span>
+              <span class="launch-message updates-message">Buy now: future updates included</span>
+              <span class="launch-separator">✦</span>
+            </div>
+          </div>
+        </div>
+        <p class="eyebrow">Blender animation, drawn by hand</p>
+        <h2 class="hero-title">Stop plotting motion.<br><span class="gradient-text">Paint it.</span></h2>
+        <p class="hero-description">Motion Painter turns strokes in Blender's 3D Viewport into editable object animation. Draw a path, choose a motion brush, and direct movement with the immediacy of sketching, without manually building every keyframe.</p>
+        <div class="hero-chips" aria-label="Product highlights">
+          <span class="chip">Freehand + Polygon</span>
+          <span class="chip">11 Motion Brushes</span>
+          <span class="chip">Rail + Forcefield</span>
+          <span class="chip">Editable Paths</span>
+          <span class="chip">Generated Rotation</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="film">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-index">00 / See it move</span>
+          <h2 class="section-title">A faster way to direct motion.</h2>
+          <p class="section-lead">Watch Motion Painter turn viewport gestures into controlled, art-directable animation.</p>
+        </div>
+        <div class="video-frame">
+          <iframe src="https://www.youtube-nocookie.com/embed/N_ZcqKqavGA?rel=0" title="Motion Painter promotional video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-index">01 / Core workflow</span>
+          <h2 class="section-title">From gesture to animation.</h2>
+          <p class="section-lead">Motion Painter brings path creation, targeting, motion design, rotation, and output control into one visual workflow inside Blender.</p>
+        </div>
+
+        <div class="feature-list">
+        <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">01 / Paint paths</div>
+              <h3>Draw motion directly in the viewport.</h3>
+              <p>Drag to create a fluid freehand guide or click connected segments with Motion Polygon. Project strokes on the view plane, at the 3D Cursor, or directly across visible surfaces.</p>
+              <div class="tag-list"><span>Freehand</span><span>Polygon</span><span>Surface projection</span><span>Spacing</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-01.gif" alt="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
+              <small>Motion Paint / Live preview</small>
+            </div>
+          </article>
+
+        <article class="feature feature-brushes">
+          <div class="feature-copy">
+            <div class="feature-number">02 / Motion brushes</div>
+              <h3>One stroke. Unlimited ways to move.</h3>
+              <p>Start with a focused motion preset, then tune ordinary settings to make it yours. Save custom brushes in the blend file, update them, and copy or paste settings between paths.</p>
+              <div class="tag-list"><span>Built-in presets</span><span>Custom brushes</span><span>Copy + paste</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-02.gif" alt="Multiple Blender objects following hand-drawn motion paths with editable animation curves">
+              <small>Motion brushes / Multi-object flow</small>
+            </div>
+            <div class="brush-wall" aria-label="Included motion brush presets">
+              <span>Follow</span><span>Path Magnet</span><span>Direct</span><span>Pull</span><span>Push</span><span>Orbit</span><span>Swirl</span><span>Wave</span><span>Shake</span><span>Explosion</span><span>Implosion</span><span class="custom-brush">Custom Brush</span>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">03 / Motion modes</div>
+              <h3>Follow the rail or feel the field.</h3>
+              <p>Rail mode places motion directly along your guide. Forcefield mode treats the stroke as a flowing influence, with pull, push, orbit, wave, jitter, slowdown, bend handling, and turn controls.</p>
+              <div class="tag-list"><span>Rail</span><span>Forcefield</span><span>Orbit</span><span>Wave</span><span>Jitter</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-03.gif" alt="A Blender cube reacting to a painted forcefield motion path">
+              <small>Motion modes / Forcefield</small>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">04 / Stack + blend</div>
+              <h3>Build complex motion in layers.</h3>
+              <p>Stack multiple guides and decide how they interact. Takeover lets a higher path assume control over a smooth frame range; Add combines its flow with motion from lower paths.</p>
+              <div class="tag-list"><span>Takeover</span><span>Add</span><span>Blend frames</span><span>Path order</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-04.gif" alt="A school of animated fish controlled together with Motion Painter in Blender">
+              <small>Stack + blend / Layered motion</small>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">05 / Targets</div>
+              <h3>Direct one object or a whole group.</h3>
+              <p>Automatically pick nearby objects from the start of a stroke in screen or 3D space. Add and exclude selected targets at any time, then select every target again with one click.</p>
+              <div class="tag-list"><span>Auto Select</span><span>Screen radius</span><span>3D radius</span><span>Add + exclude</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-05.gif" alt="Motion Painter selecting and animating the letters of its name inside Blender">
+              <small>Targets / Group control</small>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">06 / Rotation</div>
+              <h3>Movement that knows where to look.</h3>
+              <p>Generate orientation from the final motion using Follow Direction, Look At Path, or Spin. Blend from the original pose, preserve an offset, bank into turns, and choose the exact local axes.</p>
+              <div class="tag-list"><span>Follow direction</span><span>Look at path</span><span>Spin</span><span>Banking</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-06.gif" alt="Animated Motion Painter lettering demonstrating directional movement and rotation in Blender">
+              <small>Rotation / Directional motion</small>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">07 / Curves + editing</div>
+              <h3>Stay visual. Stay editable.</h3>
+              <p>Create a linked Blender 3D Curve from a guide, or build motion from a selected curve. Select paths in the viewport, erase control points, rename guides, change colors, reorder the stack, and toggle output previews.</p>
+              <div class="tag-list"><span>Linked curves</span><span>Motion Eraser</span><span>Motion Select</span><span>Guide display</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-07.gif" alt="Layered editable motion paths guiding a school of fish in Blender">
+              <small>Curves + editing / Path stack</small>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div class="feature-copy">
+              <div class="feature-number">08 / Clean output</div>
+              <h3>Editable guides. Cleaner keyframes.</h3>
+              <p>Control speed, duration, spacing, smoothing, draw-speed influence, and turn velocity. Simplify generated location and rotation keys within chosen tolerances, or keep the keys and remove the guide when the motion is final.</p>
+              <div class="tag-list"><span>Key simplification</span><span>Linear F-curves</span><span>Speed colors</span><span>Keep keys</span></div>
+            </div>
+            <div class="feature-media has-gif">
+              <img src="assets/motion-painter-feature-08.gif" alt="A Blender cube animated along a motion path with editable output controls">
+              <small>Clean output / Editable keys</small>
+            </div>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="roadmap">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-index">02 / Roadmap</span>
+          <h2 class="section-title">Motion Painter is just getting started.</h2>
+          <p class="section-lead">Object animation is the foundation. Future modes will expand the same paint-first workflow into character motion and Blender's physics systems.</p>
+        </div>
+        <div class="roadmap-grid">
+          <article class="roadmap-card current">
+            <span class="roadmap-status">Available now</span>
+            <h3>Object Mode</h3>
+            <p>Paint paths for Blender objects, layer influences, generate rotation, and keep the final animation editable from guides or F-curves.</p>
+            <span class="roadmap-order">01</span>
+          </article>
+          <article class="roadmap-card rig">
+            <span class="roadmap-status">Planned</span>
+            <h3>Rig Mode</h3>
+            <p>Extend the painting workflow to rigs, making it possible to direct bones and character motion with drawn gestures instead of object-only targets.</p>
+            <span class="roadmap-order">02</span>
+          </article>
+          <article class="roadmap-card physics">
+            <span class="roadmap-status">Planned</span>
+            <h3>Physics Mode</h3>
+            <p>Connect painted motion with Blender rigid bodies, force fields, and related physics systems for art-directed simulations that still feel alive.</p>
+            <span class="roadmap-order">03</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section before-buy" id="before-you-buy">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-index">03 / Before you buy</span>
+          <h2 class="section-title">Early access, clearly stated.</h2>
+          <p class="section-lead">Motion Painter is currently a beta product offered at a 33% Early Access discount. Please purchase with the expectations below in mind.</p>
+        </div>
+        <div class="before-grid">
+          <article class="before-card">
+            <span class="before-label">Beta software</span>
+            <h3>Powerful now. Still evolving.</h3>
+            <p>This is an Early Access release under active development. You may encounter bugs, rough edges, or workflows that change as the addon improves. If you find a bug, <a href="https://discord.gg/wcQZDxBPbT" target="_blank" rel="noopener noreferrer">join the Motion Painter Discord</a> to report it, share feedback, and help shape the next update.</p>
+          </article>
+          <article class="before-card">
+            <span class="before-label">Development disclosure</span>
+            <h3>Artist-directed, AI-assisted.</h3>
+            <p><em>it is developed using an AI-assisted workflow, directed and quality-tested by an experienced Blender artist.</em></p>
+          </article>
+        </div>
+        <p class="early-access-note"><strong>The -33% discount reflects the Early Access stage.</strong> Your Early Access purchase includes future updates, including later versions that may be sold without this discount. By purchasing now, you are choosing to use Motion Painter while it is still being refined and accepting that some bugs may be present.</p>
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="shell">
+        <p class="eyebrow">Motion design, at the speed of a stroke</p>
+        <h2>Draw the path.<br><span class="gradient-text">Direct the motion.</span></h2>
+        <p>Motion Painter makes object animation feel immediate, visual, and playful while keeping the control needed for serious Blender work.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const hero = document.querySelector("#hero-animation");
+      const canvas = document.querySelector("#hero-trails");
+      const ctx = canvas.getContext("2d", { alpha: true });
+      const letters = [...document.querySelectorAll(".logo-painter .trail-source")];
+      const dots = [...document.querySelectorAll(".dot-source")];
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      let painterAnimations = [];
+      let active = true;
+      let width = 0;
+      let height = 0;
+
+      const sources = [
+        ...letters.map((el, i) => ({
+          el, points: [], hue: i * 29, width: 7.25, max: 58, kind: "letter",
+          filtered: null, sampleTime: 0, lastMoved: 0, settled: false, settledAt: 0
+        })),
+        ...dots.map((el, i) => ({
+          el, points: [], hue: 185 + i * 120, width: 3.8, max: 72, kind: "dot",
+          filtered: null, sampleTime: 0, lastMoved: 0, settled: false, settledAt: 0
+        }))
+      ];
+
+      function startPainterAnimations() {
+        painterAnimations.forEach(animation => animation.cancel());
+        painterAnimations = [];
+        if (reduceMotion.matches) return;
+
+        letters.forEach((letter, index) => {
+          const style = getComputedStyle(letter);
+          const value = name => parseFloat(style.getPropertyValue(name)) || 0;
+          const start = { x: value("--burst-x"), y: value("--burst-y"), r: value("--burst-r") };
+          const transform = (x, y, r, scale = 1) => `translate3d(${x}em, ${y}em, 0) rotate(${r}deg) scale(${scale})`;
+          const rest = transform(0, 0, 0, 1);
+          const length = Math.max(.001, Math.hypot(start.x, start.y));
+          const outward = { x: start.x / length, y: start.y / length };
+          const side = start.x <= 0 ? 1 : -1;
+          const perpendicular = { x: (-start.y / length) * side, y: (start.x / length) * side };
+          const bow = .72 + (index % 3) * .11;
+          const controlA = {
+            x: start.x + outward.x * .12 + perpendicular.x * bow,
+            y: start.y + outward.y * .12 + perpendicular.y * bow
+          };
+          const controlB = {
+            x: perpendicular.x * bow * .72,
+            y: perpendicular.y * bow * .72 - .08
+          };
+          const keyframes = [{ offset: 0, transform: rest }, { offset: .14, transform: rest }];
+
+          for (let i = 1; i <= 9; i++) {
+            const t = i / 9;
+            const eased = 1 - Math.pow(1 - t, 3);
+            keyframes.push({
+              offset: .14 + .104 * t,
+              transform: transform(start.x * eased, start.y * eased, start.r * eased, 1 - .07 * eased),
+              easing: "linear"
+            });
+          }
+
+          for (let i = 1; i <= 48; i++) {
+            const t = i / 48;
+            const inverse = 1 - t;
+            const t2 = t * t;
+            const t3 = t2 * t;
+            const t4 = t3 * t;
+            const inverse2 = inverse * inverse;
+            const inverse3 = inverse2 * inverse;
+            const inverse4 = inverse3 * inverse;
+            const inverse5 = inverse4 * inverse;
+            const isLanding = i === 48;
+            const x = isLanding ? 0 : inverse5 * start.x + 5 * inverse4 * t * start.x + 10 * inverse3 * t2 * controlA.x + 10 * inverse2 * t3 * controlB.x;
+            const y = isLanding ? 0 : inverse5 * start.y + 5 * inverse4 * t * start.y + 10 * inverse3 * t2 * controlA.y + 10 * inverse2 * t3 * controlB.y;
+            const smooth = 6 * t * t * t * t * t - 15 * t4 + 10 * t3;
+            const r = isLanding ? 0 : start.r * (1 - smooth) + side * 6 * Math.pow(Math.sin(Math.PI * t), 2);
+            keyframes.push({
+              offset: .244 + .616 * t,
+              transform: transform(x, y, r, isLanding ? 1 : .93 + .07 * smooth),
+              easing: "linear"
+            });
+          }
+
+          keyframes.push({ offset: 1, transform: rest });
+          painterAnimations.push(letter.animate(keyframes, { duration: 3900, iterations: Infinity, fill: "both" }));
+        });
+      }
+
+      function resize() {
+        width = hero.clientWidth;
+        height = hero.clientHeight;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        sources.forEach(source => {
+          source.points.length = 0;
+          source.filtered = null;
+          source.sampleTime = 0;
+          source.lastMoved = 0;
+          source.settled = false;
+          source.settledAt = 0;
+        });
+      }
+
+      function centerOf(el, kind) {
+        const heroRect = hero.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
+        if (kind === "dot") {
+          const host = el.parentElement.getBoundingClientRect();
+          const transform = getComputedStyle(el).transform;
+          const matrix = transform === "none" ? null : new DOMMatrixReadOnly(transform);
+          const angle = matrix ? Math.atan2(matrix.b, matrix.a) : 0;
+          const radius = Math.max(host.width, host.height) * .56;
+          return {
+            x: host.left - heroRect.left + host.width / 2 + Math.sin(angle) * radius,
+            y: host.top - heroRect.top + host.height / 2 - Math.cos(angle) * radius
+          };
+        }
+        return {
+          x: rect.left - heroRect.left + rect.width / 2,
+          y: rect.top - heroRect.top + rect.height / 2
+        };
+      }
+
+      function addPoint(source, now) {
+        const raw = centerOf(source.el, source.kind);
+        const dt = source.sampleTime ? Math.min(now - source.sampleTime, 34) : 16.67;
+        const alpha = 1 - Math.exp(-dt / (source.kind === "dot" ? 13 : 21));
+        if (!source.filtered) source.filtered = { x: raw.x, y: raw.y };
+        source.filtered.x += (raw.x - source.filtered.x) * alpha;
+        source.filtered.y += (raw.y - source.filtered.y) * alpha;
+        source.sampleTime = now;
+        const point = { x: source.filtered.x, y: source.filtered.y };
+        const previous = source.points[source.points.length - 1];
+        if (!previous) {
+          source.points.push({ ...point, t: now });
+          return;
+        }
+        const distance = Math.hypot(point.x - previous.x, point.y - previous.y);
+        if (distance > .12) {
+          source.points.push({ ...point, t: now });
+          source.lastMoved = now;
+          source.settled = false;
+        } else if (source.kind === "letter" && source.lastMoved && !source.settled && now - source.lastMoved > 75) {
+          source.points.push({ ...point, t: now });
+          source.settled = true;
+          source.settledAt = now;
+        }
+        while (source.points.length > source.max) source.points.shift();
+      }
+
+      function maxAge(source, now) {
+        if (source.kind === "dot") return 1180;
+        const settledFor = source.settled ? now - source.settledAt : 0;
+        return 650 - Math.min(settledFor / 180, 1) * 410;
+      }
+
+      function metrics(source, now) {
+        const age = maxAge(source, now);
+        source.points = source.points.filter(point => now - point.t < age);
+        let length = 0;
+        for (let i = 1; i < source.points.length; i++) {
+          length += Math.hypot(source.points[i].x - source.points[i - 1].x, source.points[i].y - source.points[i - 1].y);
+        }
+        const target = source.kind === "dot" ? 220 : 420;
+        return { age, length, factor: Math.min(1, length / target) };
+      }
+
+      function drawBloom(source, now, data) {
+        const points = source.points;
+        if (points.length < 2) return;
+        let x = 0, y = 0, total = 0, totalLife = 0;
+        points.forEach(point => {
+          const life = Math.max(0, 1 - (now - point.t) / data.age);
+          const weight = life * life;
+          x += point.x * weight;
+          y += point.y * weight;
+          total += weight;
+          totalLife += life;
+        });
+        if (!total) return;
+        x /= total;
+        y /= total;
+        const eased = Math.sqrt(data.factor);
+        const radius = (source.kind === "dot" ? 42 : 54) + (source.kind === "dot" ? 143 : 226) * eased;
+        const hue = (source.hue + now * .018) % 360;
+        const intensity = (totalLife / points.length) * (.32 + .68 * data.factor) * (source.kind === "dot" ? .205 : .255);
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        glow.addColorStop(0, `hsla(${hue},100%,58%,${intensity})`);
+        glow.addColorStop(.28, `hsla(${(hue + 34) % 360},100%,48%,${intensity * .64})`);
+        glow.addColorStop(.68, `hsla(${(hue + 72) % 360},100%,32%,${intensity * .22})`);
+        glow.addColorStop(1, `hsla(${hue},100%,20%,0)`);
+        ctx.fillStyle = glow;
+        ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      }
+
+      function drawTrail(source, now, data) {
+        const points = source.points;
+        if (points.length < 3) return;
+        const thickness = .16 + .84 * Math.sqrt(data.factor);
+        const trailWidth = source.width * thickness;
+        const first = points[0];
+        const last = points[points.length - 1];
+        const gradient = ctx.createLinearGradient(first.x, first.y, last.x === first.x && last.y === first.y ? last.x + 1 : last.x, last.y);
+        const phase = now * .018 + source.hue;
+        [[0,8,0],[.13,18,.18],[.3,68,.62],[.48,138,.88],[.64,190,1],[.8,248,1],[1,314,1]].forEach(([stop, hue, alpha]) => {
+          gradient.addColorStop(stop, `hsla(${(phase + hue) % 360},100%,61%,${alpha})`);
+        });
+        const path = () => {
+          ctx.beginPath();
+          ctx.moveTo(first.x, first.y);
+          for (let i = 1; i < points.length - 1; i++) {
+            const current = points[i];
+            const next = points[i + 1];
+            ctx.quadraticCurveTo(current.x, current.y, (current.x + next.x) * .5, (current.y + next.y) * .5);
+          }
+          ctx.lineTo(last.x, last.y);
+        };
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        path();
+        ctx.strokeStyle = gradient;
+        ctx.globalAlpha = .3;
+        ctx.lineWidth = trailWidth * 8.5;
+        ctx.shadowBlur = 20 * thickness;
+        ctx.shadowColor = `hsl(${(phase + 185) % 360},100%,56%)`;
+        ctx.stroke();
+        path();
+        ctx.globalAlpha = .72;
+        ctx.lineWidth = trailWidth * 3.35;
+        ctx.shadowBlur = 13 * thickness;
+        ctx.stroke();
+        path();
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = trailWidth * 1.12;
+        ctx.shadowBlur = 7 * thickness;
+        ctx.stroke();
+      }
+
+      function frame(now) {
+        if (active && !reduceMotion.matches) {
+          ctx.clearRect(0, 0, width, height);
+          ctx.globalCompositeOperation = "lighter";
+          sources.forEach(source => addPoint(source, now));
+          sources.forEach(source => {
+            const data = metrics(source, now);
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+            drawBloom(source, now, data);
+            drawTrail(source, now, data);
+          });
+          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = "source-over";
+        }
+        requestAnimationFrame(frame);
+      }
+
+      new IntersectionObserver(([entry]) => {
+        active = entry.isIntersecting;
+        painterAnimations.forEach(animation => active ? animation.play() : animation.pause());
+      }, { threshold: .02 }).observe(hero);
+
+      addEventListener("resize", resize, { passive: true });
+      reduceMotion.addEventListener("change", startPainterAnimations);
+      resize();
+      startPainterAnimations();
+      requestAnimationFrame(frame);
+    })();
+
+    (() => {
+      const canvas = document.querySelector("#page-motion");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d", { alpha: true });
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const finePointer = matchMedia("(pointer: fine)");
+      const path = [];
+      const particles = [];
+      const followers = Array.from({ length: 6 }, (_, i) => ({
+        x: innerWidth * .5,
+        y: innerHeight * .5,
+        angle: 0,
+        hue: i * 54 + 175
+      }));
+      let width = innerWidth;
+      let height = innerHeight;
+      let dpr = Math.min(devicePixelRatio || 1, 1.5);
+      let pointer = { x: width * .5, y: height * .5 };
+      let lastMove = -Infinity;
+      let painting = false;
+      let brushMode = "follow";
+      let brushUntil = 0;
+      let activeBrush = null;
+      let activeTimer = 0;
+
+      function resize() {
+        width = innerWidth;
+        height = innerHeight;
+        dpr = Math.min(devicePixelRatio || 1, 1.5);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function rememberPoint(x, y, strength = .3) {
+        const last = path[path.length - 1];
+        if (!last || Math.hypot(x - last.x, y - last.y) > 2.5) {
+          path.push({ x, y, time: performance.now(), strength });
+          if (path.length > 180) path.splice(0, path.length - 180);
+        }
+      }
+
+      function spawnBurst(x, y, inward = false, amount = 24) {
+        const now = performance.now();
+        for (let i = 0; i < amount; i++) {
+          const angle = Math.PI * 2 * i / amount + Math.random() * .18;
+          const radius = inward ? 90 + Math.random() * 65 : 2;
+          const speed = .1 + Math.random() * .16;
+          particles.push({
+            x: x + Math.cos(angle) * radius,
+            y: y + Math.sin(angle) * radius,
+            vx: Math.cos(angle) * speed * (inward ? -1 : 1),
+            vy: Math.sin(angle) * speed * (inward ? -1 : 1),
+            born: now,
+            life: inward ? 620 : 760,
+            hue: (i / amount) * 300 + now * .02,
+            size: 1.5 + Math.random() * 3
+          });
+        }
+      }
+
+      function activateBrush(element) {
+        const name = element.textContent.trim().toLowerCase();
+        brushMode = name;
+        brushUntil = performance.now() + 2800;
+        activeBrush?.classList.remove("is-active");
+        activeBrush = element;
+        activeBrush.classList.add("is-active");
+        clearTimeout(activeTimer);
+        activeTimer = setTimeout(() => {
+          activeBrush?.classList.remove("is-active");
+          activeBrush = null;
+        }, 2800);
+
+        const rect = element.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        if (name === "explosion") spawnBurst(x, y, false, 34);
+        else if (name === "implosion") spawnBurst(x, y, true, 34);
+        else spawnBurst(x, y, false, 12);
+      }
+
+      document.querySelectorAll(".brush-wall span").forEach(element => {
+        element.tabIndex = 0;
+        element.setAttribute("role", "button");
+        element.setAttribute("aria-label", `Activate ${element.textContent.trim()} motion`);
+        element.addEventListener("click", () => activateBrush(element));
+        element.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            activateBrush(element);
+          }
+        });
+      });
+
+      document.querySelectorAll(".feature-media, .roadmap-card").forEach(element => {
+        element.addEventListener("pointermove", event => {
+          const rect = element.getBoundingClientRect();
+          const px = (event.clientX - rect.left) / rect.width;
+          const py = (event.clientY - rect.top) / rect.height;
+          element.style.setProperty("--mx", `${px * 100}%`);
+          element.style.setProperty("--my", `${py * 100}%`);
+          if (element.classList.contains("feature-media")) {
+            element.style.setProperty("--tilt-x", `${(px - .5) * 3.2}deg`);
+            element.style.setProperty("--tilt-y", `${(.5 - py) * 3.2}deg`);
+          }
+        });
+        element.addEventListener("pointerleave", () => {
+          element.style.setProperty("--mx", "50%");
+          element.style.setProperty("--my", "50%");
+          element.style.setProperty("--tilt-x", "0deg");
+          element.style.setProperty("--tilt-y", "0deg");
+        });
+      });
+
+      addEventListener("pointermove", event => {
+        if (!finePointer.matches || reduceMotion.matches) return;
+        pointer = { x: event.clientX, y: event.clientY };
+        lastMove = performance.now();
+        rememberPoint(pointer.x, pointer.y, painting ? 1 : .28);
+      }, { passive: true });
+
+      addEventListener("pointerdown", event => {
+        if (!finePointer.matches || reduceMotion.matches || event.button !== 0) return;
+        painting = true;
+        pointer = { x: event.clientX, y: event.clientY };
+        lastMove = performance.now();
+        rememberPoint(pointer.x, pointer.y, 1);
+        if (!event.target.closest(".brush-wall")) spawnBurst(pointer.x, pointer.y, false, 14);
+      }, { passive: true });
+
+      addEventListener("pointerup", () => { painting = false; }, { passive: true });
+      addEventListener("pointercancel", () => { painting = false; }, { passive: true });
+      addEventListener("blur", () => { painting = false; });
+
+      function drawPath(now) {
+        if (path.length < 2) return;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        for (let i = 1; i < path.length; i++) {
+          const a = path[i - 1];
+          const b = path[i];
+          const life = b.strength > .5 ? 1550 : 620;
+          const alpha = Math.max(0, 1 - (now - b.time) / life) * b.strength;
+          if (alpha <= 0) continue;
+          const hue = (now * .035 + i * 3.2) % 360;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo(a.x, a.y, b.x, b.y);
+          ctx.strokeStyle = `hsla(${hue},100%,60%,${alpha * .18})`;
+          ctx.lineWidth = 18 * alpha + 3;
+          ctx.shadowBlur = 24;
+          ctx.shadowColor = `hsla(${hue},100%,55%,${alpha * .8})`;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `hsla(${(hue + 28) % 360},100%,64%,${alpha * .72})`;
+          ctx.lineWidth = 2.2 + alpha * 2.6;
+          ctx.shadowBlur = 9;
+          ctx.stroke();
+        }
+      }
+
+      function adjustedTarget(target, index, now) {
+        let x = target.x;
+        let y = target.y;
+        const mode = now < brushUntil ? brushMode : "follow";
+        const phase = now * .006 + index * .9;
+        if (mode === "orbit" || mode === "swirl") {
+          const radius = mode === "swirl" ? 10 + index * 4 : 18;
+          x += Math.cos(phase * (mode === "swirl" ? 1.8 : 1)) * radius;
+          y += Math.sin(phase * (mode === "swirl" ? 1.8 : 1)) * radius;
+        } else if (mode === "wave") {
+          y += Math.sin(phase * 2.2) * 18;
+        } else if (mode === "shake") {
+          x += (Math.random() - .5) * 12;
+          y += (Math.random() - .5) * 12;
+        } else if (mode === "push") {
+          x += (index + 1) * 5;
+        } else if (mode === "pull") {
+          x -= (index + 1) * 4;
+        }
+        return { x, y };
+      }
+
+      function drawShape(follower, index, alpha) {
+        const size = 3.7 + index * .6;
+        const color = `hsla(${follower.hue},100%,64%,${alpha})`;
+        ctx.save();
+        ctx.translate(follower.x, follower.y);
+        ctx.rotate(follower.angle + index * .35);
+        ctx.beginPath();
+        if (index % 3 === 0) {
+          ctx.rect(-size, -size, size * 2, size * 2);
+        } else if (index % 3 === 1) {
+          ctx.moveTo(0, -size * 1.25);
+          ctx.lineTo(size * 1.15, size);
+          ctx.lineTo(-size * 1.15, size);
+          ctx.closePath();
+        } else {
+          ctx.arc(0, 0, size, 0, Math.PI * 2);
+        }
+        ctx.fillStyle = color;
+        ctx.shadowBlur = 13 + index * 2;
+        ctx.shadowColor = color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawFollowers(now) {
+        if (!path.length) return;
+        const idleAlpha = Math.max(0, 1 - (now - lastMove) / 950);
+        followers.forEach((follower, index) => {
+          const direct = now < brushUntil && brushMode === "direct";
+          const delay = direct ? index * 2 : (index + 1) * 9;
+          const raw = path[Math.max(0, path.length - 1 - delay)] || path[0];
+          const target = adjustedTarget(raw, index, now);
+          const previousX = follower.x;
+          const previousY = follower.y;
+          const ease = direct ? .38 : Math.max(.08, .2 - index * .018);
+          follower.x += (target.x - follower.x) * ease;
+          follower.y += (target.y - follower.y) * ease;
+          follower.angle = Math.atan2(follower.y - previousY, follower.x - previousX);
+          drawShape(follower, index, idleAlpha * (.9 - index * .07));
+        });
+      }
+
+      function drawParticles(now) {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const particle = particles[i];
+          const age = now - particle.born;
+          if (age >= particle.life) {
+            particles.splice(i, 1);
+            continue;
+          }
+          const alpha = 1 - age / particle.life;
+          const x = particle.x + particle.vx * age;
+          const y = particle.y + particle.vy * age;
+          ctx.beginPath();
+          ctx.arc(x, y, particle.size * (.45 + alpha), 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${particle.hue},100%,62%,${alpha})`;
+          ctx.shadowBlur = 16;
+          ctx.shadowColor = `hsl(${particle.hue},100%,58%)`;
+          ctx.fill();
+        }
+      }
+
+      function frame(now) {
+        ctx.clearRect(0, 0, width, height);
+        if (!reduceMotion.matches && finePointer.matches) {
+          while (path.length && now - path[0].time > 1650) path.shift();
+          ctx.globalCompositeOperation = "lighter";
+          drawPath(now);
+          drawFollowers(now);
+          drawParticles(now);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.shadowBlur = 0;
+        }
+        requestAnimationFrame(frame);
+      }
+
+      addEventListener("resize", resize, { passive: true });
+      resize();
+      requestAnimationFrame(frame);
+    })();
+
+    (() => {
+      // Reserved for future GIF-free feature previews.
+      return;
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const cards = [...document.querySelectorAll(".feature-media")];
+      const effects = ["paint", "follow", "rail", "stack", "magnet", "rotate", "curve", "keys"];
+      const colors = ["#ff8a1e", "#ff2aa1", "#00e5ff", "#925cff", "#82ff56", "#ff8a1e", "#ff2aa1", "#00e5ff"];
+      let brushMode = "follow";
+      let brushUntil = 0;
+      let activeBrush = null;
+      let brushTimer = 0;
+
+      const states = cards.map((card, index) => {
+        const canvas = document.createElement("canvas");
+        canvas.className = "feature-canvas";
+        canvas.setAttribute("aria-hidden", "true");
+        card.prepend(canvas);
+        const state = {
+          card,
+          canvas,
+          ctx: canvas.getContext("2d", { alpha: true }),
+          effect: effects[index],
+          color: colors[index],
+          width: 0,
+          height: 0,
+          active: false,
+          visible: false,
+          down: false,
+          pointer: { x: 0, y: 0 },
+          points: [],
+          sparks: [],
+          followers: Array.from({ length: 6 }, () => ({ x: 0, y: 0 })),
+          seeds: Array.from({ length: 24 }, (_, i) => ({
+            x: ((i * 47) % 91 + 5) / 100,
+            y: ((i * 71) % 83 + 8) / 100,
+            size: 1.5 + (i % 4)
+          }))
+        };
+
+        card.addEventListener("pointerenter", () => { state.active = true; });
+        card.addEventListener("pointerleave", () => {
+          state.active = false;
+          state.down = false;
+          card.style.setProperty("--mx", "50%");
+          card.style.setProperty("--my", "50%");
+          card.style.setProperty("--tilt-x", "0deg");
+          card.style.setProperty("--tilt-y", "0deg");
+        });
+        card.addEventListener("pointermove", event => {
+          const rect = card.getBoundingClientRect();
+          state.pointer.x = event.clientX - rect.left;
+          state.pointer.y = event.clientY - rect.top;
+          const px = state.pointer.x / rect.width;
+          const py = state.pointer.y / rect.height;
+          card.style.setProperty("--mx", `${px * 100}%`);
+          card.style.setProperty("--my", `${py * 100}%`);
+          card.style.setProperty("--tilt-x", `${(px - .5) * 3.2}deg`);
+          card.style.setProperty("--tilt-y", `${(.5 - py) * 3.2}deg`);
+          state.points.push({ x: state.pointer.x, y: state.pointer.y, time: performance.now(), strong: state.down });
+          if (state.points.length > 100) state.points.shift();
+        }, { passive: true });
+        card.addEventListener("pointerdown", () => { state.down = true; });
+        card.addEventListener("pointerup", () => { state.down = false; });
+        return state;
+      });
+
+      function resize(state) {
+        const dpr = Math.min(devicePixelRatio || 1, 1.5);
+        state.width = state.card.clientWidth;
+        state.height = state.card.clientHeight;
+        state.canvas.width = Math.round(state.width * dpr);
+        state.canvas.height = Math.round(state.height * dpr);
+        state.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!state.pointer.x) state.pointer = { x: state.width / 2, y: state.height / 2 };
+        state.followers.forEach((follower, i) => {
+          if (!follower.x) {
+            follower.x = state.width * (.35 + i * .05);
+            follower.y = state.height * .5;
+          }
+        });
+      }
+
+      function stroke(ctx, color, width = 2, blur = 12, alpha = 1) {
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.lineWidth = width;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowBlur = blur;
+        ctx.shadowColor = color;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      function rgbGradient(ctx, width) {
+        const gradient = ctx.createLinearGradient(0, 0, width, 0);
+        gradient.addColorStop(0, "#ff8a1e");
+        gradient.addColorStop(.28, "#ff2aa1");
+        gradient.addColorStop(.56, "#925cff");
+        gradient.addColorStop(.8, "#00e5ff");
+        gradient.addColorStop(1, "#82ff56");
+        return gradient;
+      }
+
+      function drawPaint(state, now) {
+        const { ctx } = state;
+        state.points = state.points.filter(point => now - point.time < 1450);
+        if (state.points.length < 2) {
+          ctx.beginPath();
+          ctx.moveTo(state.width * .17, state.height * .58);
+          ctx.bezierCurveTo(state.width * .36, state.height * .32, state.width * .62, state.height * .7, state.width * .83, state.height * .42);
+          stroke(ctx, state.color, 2, 15, .22);
+          return;
+        }
+        for (let i = 1; i < state.points.length; i++) {
+          const a = state.points[i - 1];
+          const b = state.points[i];
+          const alpha = Math.max(0, 1 - (now - b.time) / 1450) * (b.strong ? 1 : .55);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          stroke(ctx, `hsl(${(i * 9 + now * .025) % 360} 100% 61%)`, 2 + alpha * 3, 18, alpha);
+        }
+      }
+
+      function followerTarget(state, index, now) {
+        const mode = now < brushUntil ? brushMode : "follow";
+        const historyIndex = Math.max(0, state.points.length - 1 - index * (mode === "direct" ? 2 : 7));
+        const fallback = {
+          x: state.width * (.5 + Math.cos(now * .0007) * .27),
+          y: state.height * (.5 + Math.sin(now * .0011) * .18)
+        };
+        const target = state.active && state.points.length ? state.points[historyIndex] : fallback;
+        let x = target.x;
+        let y = target.y;
+        const phase = now * .006 + index;
+        if (mode === "orbit" || mode === "swirl") {
+          const radius = mode === "swirl" ? 8 + index * 5 : 22;
+          x += Math.cos(phase * (mode === "swirl" ? 1.8 : 1)) * radius;
+          y += Math.sin(phase * (mode === "swirl" ? 1.8 : 1)) * radius;
+        } else if (mode === "wave") y += Math.sin(phase * 2) * 22;
+        else if (mode === "shake") { x += (Math.random() - .5) * 12; y += (Math.random() - .5) * 12; }
+        else if (mode === "push") x += 7 * index;
+        else if (mode === "pull") x -= 6 * index;
+        return { x, y };
+      }
+
+      function drawFollow(state, now) {
+        const { ctx } = state;
+        ctx.beginPath();
+        state.followers.forEach((follower, index) => {
+          const target = followerTarget(state, index, now);
+          const ease = Math.max(.08, .22 - index * .02);
+          follower.x += (target.x - follower.x) * ease;
+          follower.y += (target.y - follower.y) * ease;
+          index ? ctx.lineTo(follower.x, follower.y) : ctx.moveTo(follower.x, follower.y);
+        });
+        stroke(ctx, rgbGradient(ctx, state.width), 2, 14, .5);
+        state.followers.forEach((follower, index) => {
+          ctx.save();
+          ctx.translate(follower.x, follower.y);
+          ctx.rotate(now * .001 + index);
+          ctx.beginPath();
+          if (index % 3 === 0) ctx.rect(-5, -5, 10, 10);
+          else if (index % 3 === 1) { ctx.moveTo(0, -7); ctx.lineTo(6, 5); ctx.lineTo(-6, 5); ctx.closePath(); }
+          else ctx.arc(0, 0, 5, 0, Math.PI * 2);
+          ctx.fillStyle = colors[index];
+          ctx.shadowBlur = 16;
+          ctx.shadowColor = colors[index];
+          ctx.fill();
+          ctx.restore();
+        });
+        drawSparks(state, now);
+      }
+
+      function cubic(a, b, c, d, t) {
+        const u = 1 - t;
+        return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
+      }
+
+      function drawRail(state, now) {
+        const { ctx, width: w, height: h } = state;
+        const controlX = state.active ? state.pointer.x : w * .55;
+        const controlY = state.active ? state.pointer.y : h * (.5 + Math.sin(now * .001) * .2);
+        const p = [{x:w*.08,y:h*.7},{x:w*.3,y:h*.18},{x:controlX,y:controlY},{x:w*.92,y:h*.3}];
+        ctx.beginPath(); ctx.moveTo(p[0].x,p[0].y); ctx.bezierCurveTo(p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y);
+        stroke(ctx, rgbGradient(ctx, w), 3, 18, .75);
+        for (let i = 0; i < 4; i++) {
+          const t = (now * .00018 + i * .24) % 1;
+          const x = cubic(p[0].x,p[1].x,p[2].x,p[3].x,t);
+          const y = cubic(p[0].y,p[1].y,p[2].y,p[3].y,t);
+          ctx.beginPath(); ctx.arc(x,y,4+i,0,Math.PI*2); ctx.fillStyle=colors[i]; ctx.shadowBlur=18; ctx.shadowColor=colors[i]; ctx.fill();
+        }
+      }
+
+      function drawStack(state, now) {
+        const { ctx, width: w, height: h } = state;
+        const shift = state.active ? (state.pointer.x / w - .5) * 34 : Math.sin(now * .001) * 8;
+        for (let i = 5; i >= 0; i--) {
+          const x = w * .2 + i * 15 + shift * (i / 5);
+          const y = h * .25 + i * 18;
+          ctx.beginPath(); ctx.roundRect(x,y,w*.5,h*.28,14);
+          ctx.fillStyle = `${colors[i]}18`; ctx.strokeStyle=colors[i]; ctx.lineWidth=1.5; ctx.shadowBlur=14; ctx.shadowColor=colors[i]; ctx.fill(); ctx.stroke();
+        }
+      }
+
+      function drawMagnet(state, now) {
+        const { ctx, width: w, height: h } = state;
+        state.seeds.forEach((seed, i) => {
+          const bx = seed.x * w, by = seed.y * h;
+          const dx = state.pointer.x - bx, dy = state.pointer.y - by;
+          const distance = Math.max(32, Math.hypot(dx,dy));
+          const pull = state.active ? Math.min(.72, 150 / distance) : .04 + Math.sin(now*.001+i)*.015;
+          const x = bx + dx * pull, y = by + dy * pull;
+          ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(x,y); stroke(ctx, state.color, 1, 4, .13);
+          ctx.beginPath(); ctx.arc(x,y,seed.size,0,Math.PI*2); ctx.fillStyle=i%4===0?"#fff":state.color; ctx.shadowBlur=10; ctx.shadowColor=state.color; ctx.fill();
+        });
+      }
+
+      function drawRotate(state, now) {
+        const { ctx, width:w, height:h } = state;
+        const cx=w/2, cy=h/2;
+        const angle=state.active?Math.atan2(state.pointer.y-cy,state.pointer.x-cx):now*.001;
+        [42,72,102].forEach((radius,i)=>{
+          ctx.beginPath(); ctx.arc(cx,cy,radius,angle+i*.8,angle+i*.8+Math.PI*(.8+i*.18)); stroke(ctx,colors[(i+2)%colors.length],3-i*.5,17,.82);
+        });
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle); ctx.beginPath(); ctx.moveTo(-116,0); ctx.lineTo(116,0); stroke(ctx,"#ff8a1e",1.5,8,.6); ctx.restore();
+      }
+
+      function drawCurve(state, now) {
+        const { ctx, width:w, height:h } = state;
+        const cp = state.active ? state.pointer : {x:w*.52+Math.sin(now*.001)*w*.18,y:h*.28+Math.cos(now*.0013)*h*.15};
+        const start={x:w*.1,y:h*.7}, end={x:w*.9,y:h*.32};
+        ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.quadraticCurveTo(cp.x,cp.y,end.x,end.y); stroke(ctx,rgbGradient(ctx,w),4,19,.84);
+        ctx.setLineDash([4,7]); ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.lineTo(cp.x,cp.y); ctx.lineTo(end.x,end.y); stroke(ctx,"#925cff",1,5,.28); ctx.setLineDash([]);
+        [start,cp,end].forEach((point,i)=>{ctx.beginPath();ctx.arc(point.x,point.y,i===1?6:4,0,Math.PI*2);ctx.fillStyle=i===1?"#ff2aa1":"#fff";ctx.shadowBlur=12;ctx.shadowColor=state.color;ctx.fill();});
+      }
+
+      function drawKeys(state, now) {
+        const { ctx, width:w, height:h } = state;
+        const rows=4;
+        for(let row=0;row<rows;row++){
+          const y=h*(.24+row*.17); ctx.beginPath();ctx.moveTo(w*.08,y);ctx.lineTo(w*.92,y);stroke(ctx,"#ffffff",1,0,.09);
+          const count=state.active?6:14;
+          for(let i=0;i<count;i++){
+            const base=(i+1)/(count+1); const x=w*(.08+base*.84)+(state.active?Math.sin(now*.002+i)*4:0); const size=state.active?4.5:3;
+            ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle=colors[(row+i)%colors.length];ctx.globalAlpha=state.active?.9:.42;ctx.shadowBlur=state.active?10:3;ctx.shadowColor=ctx.fillStyle;ctx.fillRect(-size,-size,size*2,size*2);ctx.restore();ctx.globalAlpha=1;
+          }
+        }
+      }
+
+      function spawnLocalBurst(state, inward) {
+        const now = performance.now();
+        const cx=state.width/2, cy=state.height/2;
+        for(let i=0;i<28;i++){
+          const angle=Math.PI*2*i/28; const radius=inward?Math.min(state.width,state.height)*.32:0; const speed=.08+Math.random()*.1;
+          state.sparks.push({x:cx+Math.cos(angle)*radius,y:cy+Math.sin(angle)*radius,vx:Math.cos(angle)*speed*(inward?-1:1),vy:Math.sin(angle)*speed*(inward?-1:1),born:now,hue:i*13});
+        }
+      }
+
+      function drawSparks(state, now) {
+        const { ctx } = state;
+        state.sparks = state.sparks.filter(spark => now-spark.born<720);
+        state.sparks.forEach(spark=>{const age=now-spark.born,alpha=1-age/720;ctx.beginPath();ctx.arc(spark.x+spark.vx*age,spark.y+spark.vy*age,2.5*alpha+1,0,Math.PI*2);ctx.fillStyle=`hsla(${spark.hue},100%,62%,${alpha})`;ctx.shadowBlur=12;ctx.shadowColor=ctx.fillStyle;ctx.fill();});
+      }
+
+      const drawers = { paint:drawPaint, follow:drawFollow, rail:drawRail, stack:drawStack, magnet:drawMagnet, rotate:drawRotate, curve:drawCurve, keys:drawKeys };
+
+      document.querySelectorAll(".brush-wall span").forEach(element => {
+        element.tabIndex = 0;
+        element.setAttribute("role", "button");
+        element.setAttribute("aria-label", `Preview ${element.textContent.trim()} motion`);
+        const activate = () => {
+          brushMode = element.textContent.trim().toLowerCase();
+          brushUntil = performance.now() + 2800;
+          activeBrush?.classList.remove("is-active");
+          activeBrush = element;
+          element.classList.add("is-active");
+          clearTimeout(brushTimer);
+          brushTimer = setTimeout(()=>{element.classList.remove("is-active");if(activeBrush===element)activeBrush=null;},2800);
+          if (brushMode === "explosion" || brushMode === "implosion") spawnLocalBurst(states[1], brushMode === "implosion");
+        };
+        element.addEventListener("click", activate);
+        element.addEventListener("keydown", event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();activate();}});
+      });
+
+      const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+        const state = states.find(item => item.card === entry.target);
+        if (state) state.visible = entry.isIntersecting;
+      }), { rootMargin: "120px" });
+      states.forEach(state => { resize(state); observer.observe(state.card); });
+
+      function frame(now) {
+        if (!reduceMotion.matches) states.forEach(state => {
+          if (!state.visible) return;
+          state.ctx.clearRect(0,0,state.width,state.height);
+          state.ctx.globalCompositeOperation="lighter";
+          drawers[state.effect](state,now);
+          state.ctx.globalCompositeOperation="source-over";
+          state.ctx.shadowBlur=0;
+        });
+        requestAnimationFrame(frame);
+      }
+      addEventListener("resize",()=>states.forEach(resize),{passive:true});
+      requestAnimationFrame(frame);
+    })();
+
+    (() => {
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      if (reduceMotion.matches) return;
+
+      // A tiny group of objects follows paths only inside the permanent hero copy.
+      const heroCopy = document.querySelector(".hero-copy");
+      const heroShell = heroCopy.querySelector(".shell");
+      const companionColors = ["#ff8a1e", "#ff2aa1", "#925cff", "#00e5ff"];
+      const companions = companionColors.map((color, index) => {
+        const element = document.createElement("span");
+        element.className = "motion-companion";
+        element.style.setProperty("--companion-color", color);
+        element.style.setProperty("--size", `${10 - index}px`);
+        element.style.setProperty("--radius", index === 1 ? "50%" : index === 2 ? "0" : "2px");
+        heroShell.append(element);
+        return { element, x: 0, y: 0 };
+      });
+      const heroPath = [];
+      let heroTracking = false;
+
+      heroCopy.addEventListener("pointerenter", () => { heroTracking = true; heroCopy.classList.add("is-tracking"); });
+      heroCopy.addEventListener("pointerleave", () => { heroTracking = false; heroCopy.classList.remove("is-tracking"); });
+      heroCopy.addEventListener("pointermove", event => {
+        const rect = heroShell.getBoundingClientRect();
+        heroPath.push({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+        if (heroPath.length > 90) heroPath.shift();
+      }, { passive: true });
+
+      function moveCompanions() {
+        if (heroTracking && heroPath.length) companions.forEach((companion, index) => {
+          const target = heroPath[Math.max(0, heroPath.length - 1 - index * 10)];
+          const ease = .22 - index * .025;
+          companion.x += (target.x - companion.x) * ease;
+          companion.y += (target.y - companion.y) * ease;
+          companion.element.style.transform = `translate3d(${companion.x}px,${companion.y}px,0) rotate(${companion.x + companion.y}deg)`;
+        });
+        requestAnimationFrame(moveCompanions);
+      }
+      requestAnimationFrame(moveCompanions);
+
+      // The permanent video frame wakes up with an orbiting RGB border light.
+      const videoFrame = document.querySelector(".video-frame");
+      let videoAwake = false;
+      videoFrame.addEventListener("pointerenter", () => { videoAwake = true; videoFrame.classList.add("is-awake"); });
+      videoFrame.addEventListener("pointerleave", () => { videoAwake = false; videoFrame.classList.remove("is-awake"); });
+      function animateVideoBorder(now) {
+        if (videoAwake) {
+          videoFrame.style.setProperty("--video-x", `${50 + Math.cos(now * .0014) * 50}%`);
+          videoFrame.style.setProperty("--video-y", `${50 + Math.sin(now * .0028) * 50}%`);
+        }
+        requestAnimationFrame(animateVideoBorder);
+      }
+      requestAnimationFrame(animateVideoBorder);
+
+      // Feature tags behave like lightweight objects pushed by the pointer.
+      document.querySelectorAll(".feature-copy").forEach(copy => {
+        const tags = [...copy.querySelectorAll(".tag-list span")];
+        copy.addEventListener("pointermove", event => tags.forEach(tag => {
+          const rect = tag.getBoundingClientRect();
+          const dx = rect.left + rect.width / 2 - event.clientX;
+          const dy = rect.top + rect.height / 2 - event.clientY;
+          const distance = Math.max(1, Math.hypot(dx, dy));
+          const force = Math.max(0, 1 - distance / 115);
+          tag.style.transform = `translate(${dx / distance * force * 13}px,${dy / distance * force * 9}px)`;
+          tag.classList.toggle("is-near", force > .18);
+        }), { passive: true });
+        copy.addEventListener("pointerleave", () => tags.forEach(tag => {
+          tag.style.transform = "";
+          tag.classList.remove("is-near");
+        }));
+      });
+
+      // The actual brush list performs its named motion when clicked.
+      const brushWall = document.querySelector(".brush-wall");
+      const brushes = [...brushWall.querySelectorAll("span")];
+      function previewBrush(selected) {
+        const mode = selected.textContent.trim().toLowerCase();
+        const wallRect = brushWall.getBoundingClientRect();
+        brushes.forEach((brush, index) => {
+          const rect = brush.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2 - (wallRect.left + wallRect.width / 2);
+          const cy = rect.top + rect.height / 2 - (wallRect.top + wallRect.height / 2);
+          let middle = `translate(${mode === "pull" ? -18 : mode === "push" ? 18 : 0}px,0)`;
+          if (mode === "wave") middle = `translateY(${Math.sin(index * 1.3) * 18}px)`;
+          if (mode === "shake") middle = `translate(${index % 2 ? 9 : -9}px,${index % 3 ? -7 : 7}px)`;
+          if (mode === "orbit" || mode === "swirl") middle = `translate(${Math.cos(index) * 18}px,${Math.sin(index) * 18}px) rotate(${mode === "swirl" ? 18 : 8}deg)`;
+          if (mode === "explosion") middle = `translate(${cx * .22}px,${cy * .7 - 25}px) rotate(${(index - 5) * 4}deg)`;
+          if (mode === "implosion") middle = `translate(${-cx * .7}px,${-cy * .7}px) scale(.65)`;
+          if (mode === "path magnet") middle = `translateY(${Math.sin(index * .7) * 12}px) scale(.92)`;
+          const duration = mode === "explosion" ? 620 : mode === "shake" ? 420 : 850;
+          brush.animate([
+            { transform: "translate(0,0) scale(1)", offset: 0 },
+            { transform: middle, offset: mode === "explosion" ? .18 : .48 },
+            { transform: "translate(0,0) scale(1)", offset: 1 }
+          ], { duration, easing: mode === "explosion" ? "cubic-bezier(.1,.8,.2,1)" : "cubic-bezier(.2,.8,.2,1)" });
+        });
+        brushes.forEach(brush => brush.classList.toggle("is-active", brush === selected));
+        setTimeout(() => selected.classList.remove("is-active"), 900);
+      }
+      brushes.forEach(brush => {
+        brush.tabIndex = 0;
+        brush.setAttribute("role", "button");
+        brush.setAttribute("aria-label", `Animate ${brush.textContent.trim()} brush`);
+        brush.addEventListener("click", () => previewBrush(brush));
+        brush.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); previewBrush(brush); }
+        });
+      });
+
+      // Roadmap cards contain quiet constellations that separate on hover.
+      document.querySelectorAll(".roadmap-card").forEach((card, cardIndex) => {
+        for (let i = 0; i < 8; i++) {
+          const spark = document.createElement("span");
+          spark.className = "roadmap-spark";
+          spark.style.setProperty("--x", `${12 + (i * 37 + cardIndex * 13) % 78}%`);
+          spark.style.setProperty("--y", `${14 + (i * 53 + cardIndex * 19) % 72}%`);
+          spark.style.setProperty("--s", `${2 + i % 3}px`);
+          spark.style.setProperty("--dx", `${(i % 2 ? 1 : -1) * (8 + i * 2)}px`);
+          spark.style.setProperty("--dy", `${(i % 3 - 1) * 13}px`);
+          card.append(spark);
+        }
+        card.addEventListener("pointermove", event => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty("--mx", `${(event.clientX - rect.left) / rect.width * 100}%`);
+          card.style.setProperty("--my", `${(event.clientY - rect.top) / rect.height * 100}%`);
+        }, { passive: true });
+      });
+
+      // One final hidden arc: click the colored closing line.
+      const closingLine = document.querySelector(".closing .gradient-text");
+      closingLine.addEventListener("click", () => closingLine.animate([
+        { transform: "translate3d(0,0,0) rotate(0)", filter: "brightness(1)" },
+        { transform: "translate3d(34px,-24px,0) rotate(3deg)", filter: "brightness(1.7) drop-shadow(0 0 18px #ff2aa1)" },
+        { transform: "translate3d(-16px,-12px,0) rotate(-1deg)", offset: .68 },
+        { transform: "translate3d(0,0,0) rotate(0)", filter: "brightness(1)" }
+      ], { duration: 1050, easing: "cubic-bezier(.16,1,.3,1)" }));
+    })();
+  </script>
+</body>
+</html>
