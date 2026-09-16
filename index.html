@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#030305">
-  <title>Motion Painter | Paint Animation in Blender</title>
-  <meta name="description" content="Motion Painter is a Blender add-on for drawing editable motion paths directly in the 3D Viewport.">
+  <title>Motion Painter 1.0 | Paint Object Animation in Blender</title>
+  <meta name="description" content="Paint object animation in Blender with Motion Painter 1.0. Explore 11 motion brushes, editable guides, layered motion, generated rotation, and standard Blender keyframes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -488,13 +488,13 @@
       background-size: 28px 28px, 28px 28px, auto, auto;
     }
 
-    .feature-media.has-gif {
+    .feature-media.has-video {
       min-height: 0;
       aspect-ratio: 16 / 9;
       background: #050507;
     }
 
-    .feature-media.has-gif img {
+    .feature-media.has-video video {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -503,7 +503,9 @@
       object-fit: cover;
     }
 
-    .feature-media.has-gif small {
+    .feature-media.has-video small {
+      bottom: 54px;
+      pointer-events: none;
       z-index: 2;
       padding: 7px 9px;
       border: 1px solid rgba(255,255,255,.14);
@@ -833,7 +835,94 @@
       border: 0;
     }
 
+    [hidden] { display: none !important; }
+    .release-offer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px 0; text-align: center; border: 2px solid var(--orange); box-shadow: 0 0 44px rgba(255,42,161,.23); }
+    .release-offer > * { min-width: 0; }
+    .sale-marquee { width: 100%; min-width: 0; overflow: hidden; }
+    .release-offer .launch-sequence { flex: 0 0 auto; }
+    .release-offer::before, .release-offer::after { display: none; }
+    .release-offer .launch-track { animation-duration: 22s; }
+    .release-offer .launch-message { font-size: clamp(15px, 2vw, 22px); font-weight: 700; padding: 12px 20px; }
+    .release-offer .discount-badge { font: 900 clamp(28px, 4vw, 46px)/1 "Montserrat", sans-serif; letter-spacing: -.03em; }
+    .offer-heading { margin: 0; padding: 0 18px; font: 700 12px/1.5 "DM Mono", monospace; letter-spacing: .14em; text-transform: uppercase; }
+    .countdown { display: flex; justify-content: center; gap: 10px; padding: 0 16px; }
+    .countdown-unit { display: grid; gap: 7px; min-width: 0; flex: 1 1 0; max-width: 92px; padding: 13px 6px; border: 1px solid rgba(255,138,30,.4); border-radius: 10px; background: rgba(0,0,0,.35); }
+    .countdown-unit b { font: 700 clamp(25px,4vw,40px)/1 "DM Mono", monospace; font-variant-numeric: tabular-nums; color: #fff; }
+    .countdown-unit span { font: 500 10px/1 "DM Mono", monospace; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+    .offer-deadline { margin: 0; padding: 0 18px; font-size: 12px; line-height: 1.7; color: #e4dffd; }
+    .marquee-toggle { justify-self: center; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; font: 12px/1.5 inherit; }
+    .release-offer.is-paused .launch-track { animation-play-state: paused; }
+    .marquee-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    .release-offer strong { color: var(--cyan); }
+    .release-offer small, .compatibility { color: var(--muted); line-height: 1.7; }
+    .release-actions { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 22px; margin: 26px 0; font-size: .85rem; }
+    .release-button { display: inline-block; padding: 15px 23px; border: 1px solid var(--cyan); border-radius: 8px; text-decoration: none; background: rgba(0,229,255,.08); font-weight: 700; }
+    a:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 5px; }
+    .release-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .release-demos { display: grid; gap: 32px; margin-bottom: 36px; }
+    .release-demo { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); align-items: center; gap: 32px; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(135deg, rgba(0,229,255,.045), rgba(255,42,161,.035)); }
+    .release-demo h3 { font-size: clamp(1.7rem, 3vw, 2.6rem); line-height: 1.12; margin: 16px 0; }
+    .release-demo p { color: var(--muted); line-height: 1.8; }
+    .release-demo a { color: var(--cyan); text-underline-offset: 4px; }
+    .release-demo figure { min-width: 0; width: min(100%, 480px, 48vh); width: min(100%, 480px, 48svh); margin: 0 auto; }
+    .release-demo video { display: block; width: 100%; height: auto; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 10px; background: #111; }
+    .release-demo figcaption { margin-top: 10px; color: var(--muted); font-size: .78rem; line-height: 1.6; }
+    .release-demo { --demo-color: #00e5ff; --demo-rgb: 0,229,255; position: relative; isolation: isolate; overflow: hidden; border-color: rgba(var(--demo-rgb), .35); background: radial-gradient(ellipse at 0 0, rgba(var(--demo-rgb), .13), transparent 65%), #0c0c14; transition: border-color .25s, box-shadow .25s; }
+    .release-demo:nth-child(2) { --demo-color: #ff59b6; --demo-rgb: 255,89,182; }
+    .release-demo::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; background: radial-gradient(300px circle at var(--demo-x,50%) var(--demo-y,50%), rgba(var(--demo-rgb),.17), transparent 75%); transition: opacity .3s; }
+    .release-demo:hover::before, .release-demo:focus-within::before { opacity: 1; }
+    .release-demo:hover, .release-demo:focus-within { border-color: var(--demo-color); box-shadow: 0 8px 40px rgba(var(--demo-rgb), .09); }
+    .release-demo .before-label { color: var(--demo-color); }
+    .release-demo h3 { background: linear-gradient(110deg, #fff 20%, var(--demo-color) 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .release-demo video { border-color: rgba(var(--demo-rgb),.5); box-shadow: 0 0 24px rgba(var(--demo-rgb),.09); }
+    .demo-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 10px; }
+    .demo-options button { font: inherit; font-size: .72rem; font-weight: 700; color: var(--muted); background: #14141e; border: 1px solid #3a3a48; border-radius: 30px; padding: 7px 11px; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+    .demo-options button::before { content: '◆'; color: var(--demo-color); margin-right: 6px; }
+    .demo-options button[aria-pressed="true"] { color: #08080e; border-color: var(--demo-color); background: var(--demo-color); }
+    .demo-options button[aria-pressed="true"]::before { color: inherit; }
+    .demo-options button:hover { transform: translateY(-2px); }
+    .demo-options button:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+    .demo-detail { min-height: 6em; }
+    .demo-spark { position: absolute; width: 6px; height: 6px; border-radius: 1px; background: var(--demo-color); box-shadow: 0 0 9px var(--demo-color); pointer-events: none; z-index: 3; }
+    .release-demo figure { transition: transform .3s ease; }
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+      .release-demo figure:hover { transform: translateY(-3px); }
+      .demo-options button:hover::before { display: inline-block; animation: demo-key-flip .45s ease; }
+    }
+    @keyframes demo-key-flip { 50% { transform: rotate(90deg) scale(1.4); } 100% { transform: rotate(180deg); } }
+    #release-highlights .release-grid .before-card { --card-accent: #00e5ff; position: relative; overflow: hidden; border-top: 2px solid var(--card-accent); transition: transform .25s ease, box-shadow .25s ease; }
+    #release-highlights .release-grid .before-card:nth-child(2) { --card-accent: #ff59b6; }
+    #release-highlights .release-grid .before-card:nth-child(3) { --card-accent: #a889ff; }
+    #release-highlights .release-grid .before-label { color: var(--card-accent); }
+    #release-highlights .release-grid .before-card::after { content: ''; position: absolute; top: 0; left: -25%; width: 25%; height: 2px; background: linear-gradient(90deg, transparent, white, var(--card-accent), transparent); box-shadow: 0 0 12px var(--card-accent); pointer-events: none; animation: release-accent-travel 4.5s ease-in-out infinite; animation-play-state: paused; }
+    #release-highlights .release-grid .before-card.is-visible::after { animation-play-state: running; }
+    #release-highlights .release-grid .before-card:nth-child(2)::after { animation-delay: -.9s; animation-direction: alternate; }
+    #release-highlights .release-grid .before-card:nth-child(3)::after { animation-delay: -1.8s; }
+    @keyframes release-accent-travel { 0% { transform: translateX(0); opacity: 0; } 15%, 75% { opacity: 1; } 100% { transform: translateX(500%); opacity: 0; } }
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+      #release-highlights .release-grid .before-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px #0006; }
+      #release-highlights .release-grid .before-card:hover::after { animation-duration: 1.5s; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #release-highlights .release-grid .before-card { transition: none; }
+      #release-highlights .release-grid .before-card::after { animation: none; display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .release-demo, .release-demo::before, .release-demo figure, .demo-options button { transition: none; }
+      .demo-options button:hover { transform: none; }
+    }
+    .release-faq { margin-top: 32px; }
+    .release-faq details { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .release-faq summary { cursor: pointer; font-weight: 700; line-height: 1.5; }
+    .release-faq p { max-width: 850px; color: var(--muted); line-height: 1.8; }
+    .closing-offer { color: var(--cyan); }
+
     @media (max-width: 900px) {
+      .release-grid { grid-template-columns: 1fr; }
+      .release-demo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 20px; gap: 24px; }
+      .release-demo h3 { font-size: 1.6rem; margin: 12px 0; }
+      .release-demo p { font-size: .9rem; line-height: 1.6; margin: 12px 0; }
+      .release-demo figcaption { font-size: .7rem; }
       .feature { grid-template-columns: 1fr; gap: 30px; }
       .feature:nth-child(even) .feature-copy,
       .feature:nth-child(even) .feature-media { order: initial; }
@@ -845,9 +934,11 @@
     }
 
     @media (max-width: 560px) {
+      .release-demo { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 12px; }
+      .release-demo figure { width: min(100%, 260px, 32vh); width: min(100%, 260px, 32svh); }
       :root { --logo-size: clamp(3rem, 16.2vw, 5rem); }
       .shell { width: min(calc(100% - 24px), var(--content)); }
-      .hero-graphic { height: 460px; }
+      .hero-graphic { height: 280px; }
       .logo-stage { top: 31%; }
       .logo-painter { font-size: clamp(2.55rem, 13.6vw, 4.3rem); }
       .hero-copy { padding: 52px 0 66px; }
@@ -862,13 +953,16 @@
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      .logo-motion .logo-letter,
+      .logo-motion .logo-letter { animation: none; transform: none; }
       .orbital,
       #hero-trails { display: none; }
       .feature-canvas,
       .motion-companion,
       .roadmap-spark { display: none; }
       .launch-track { animation: none; transform: none; }
+      .release-offer .launch-track { width: 100%; }
+      .release-offer .launch-sequence { flex-wrap: wrap; justify-content: center; white-space: normal; padding: 0 16px; width: 100%; }
+      .release-offer .launch-sequence[aria-hidden="true"], .marquee-toggle { display: none; }
     }
   </style>
 </head>
@@ -900,29 +994,25 @@
   <main>
     <section class="hero-copy">
       <div class="shell">
-        <div class="launch-offer" role="note" aria-label="Early Access launch offer">
-          <div class="launch-track">
-            <div class="launch-sequence">
-              <span class="launch-message beta-badge">Motion Painter is in Early Access / Beta</span>
-              <span class="launch-separator">✦</span>
-              <span class="launch-message discount-badge">Save 33% during Early Access</span>
-              <span class="launch-separator">✦</span>
-              <span class="launch-message updates-message">Buy now: future updates included</span>
-              <span class="launch-separator">✦</span>
-            </div>
-            <div class="launch-sequence" aria-hidden="true">
-              <span class="launch-message beta-badge">Motion Painter is in Early Access / Beta</span>
-              <span class="launch-separator">✦</span>
-              <span class="launch-message discount-badge">Save 33% during Early Access</span>
-              <span class="launch-separator">✦</span>
-              <span class="launch-message updates-message">Buy now: future updates included</span>
-              <span class="launch-separator">✦</span>
-            </div>
+        <div class="launch-offer release-offer" role="region" aria-label="Motion Painter launch offer">
+          <p class="offer-heading">Motion Painter 1.0.0 · Full release</p>
+          <div class="sale-marquee" data-launch-offer><div class="launch-track">
+            <div class="launch-sequence"><span class="launch-message discount-badge">33% OFF</span><span class="launch-separator">✦</span><span class="launch-message">V1 launch sale</span><span class="launch-separator">✦</span><span class="launch-message discount-badge">33% OFF</span><span class="launch-separator">✦</span><span class="launch-message">Limited-time offer</span><span class="launch-separator">✦</span></div>
+            <div class="launch-sequence" aria-hidden="true"><span class="launch-message discount-badge">33% OFF</span><span class="launch-separator">✦</span><span class="launch-message">V1 launch sale</span><span class="launch-separator">✦</span><span class="launch-message discount-badge">33% OFF</span><span class="launch-separator">✦</span><span class="launch-message">Limited-time offer</span><span class="launch-separator">✦</span></div>
           </div>
+          </div>
+          <div class="countdown" role="timer" aria-label="Time remaining in the 33 percent launch sale" aria-live="off" data-countdown hidden>
+            <div class="countdown-unit"><b data-days>00</b><span>Days</span></div><div class="countdown-unit"><b data-hours>00</b><span>Hours</span></div><div class="countdown-unit"><b data-minutes>00</b><span>Minutes</span></div><div class="countdown-unit"><b data-seconds>00</b><span>Seconds</span></div>
+          </div>
+          <p class="offer-deadline" data-launch-offer>Sale ends <time data-local-deadline datetime="2026-09-23T15:00:00Z">September 23, 2026 · 15:00 UTC</time></p>
+          <button class="marquee-toggle" type="button" aria-pressed="false" data-marquee-toggle hidden>Pause scrolling banner</button>
+          <span data-evergreen hidden>The launch sale has ended. Paint motion. Make it yours.</span>
         </div>
         <p class="eyebrow">Blender animation, drawn by hand</p>
         <h2 class="hero-title">Stop plotting motion.<br><span class="gradient-text">Paint it.</span></h2>
-        <p class="hero-description">Motion Painter turns strokes in Blender's 3D Viewport into editable object animation. Draw a path, choose a motion brush, and direct movement with the immediacy of sketching, without manually building every keyframe.</p>
+        <p class="hero-description">Turn strokes in Blender's 3D Viewport into object animation. Choose a motion brush, draw the movement, and refine it with editable guides. When you're ready, keep the result as standard Blender keyframes.</p>
+        <p class="compatibility">Blender 4.5 LTS minimum · Object Mode · 12 months of support + updates</p>
+        <nav class="release-actions" aria-label="Explore Motion Painter"><a class="release-button" href="#film">See it in action</a><a href="#release-highlights">What's new in 1.0</a><a href="#before-you-buy">Compatibility + workflow</a></nav>
         <div class="hero-chips" aria-label="Product highlights">
           <span class="chip">Freehand + Polygon</span>
           <span class="chip">11 Motion Brushes</span>
@@ -941,7 +1031,7 @@
           <p class="section-lead">Watch Motion Painter turn viewport gestures into controlled, art-directable animation.</p>
         </div>
         <div class="video-frame">
-          <iframe src="https://www.youtube-nocookie.com/embed/N_ZcqKqavGA?rel=0" title="Motion Painter promotional video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/N_ZcqKqavGA?rel=0" title="Motion Painter promotional video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
       </div>
     </section>
@@ -959,11 +1049,13 @@
             <div class="feature-copy">
               <div class="feature-number">01 / Paint paths</div>
               <h3>Draw motion directly in the viewport.</h3>
-              <p>Drag to create a fluid freehand guide or click connected segments with Motion Polygon. Project strokes on the view plane, at the 3D Cursor, or directly across visible surfaces.</p>
-              <div class="tag-list"><span>Freehand</span><span>Polygon</span><span>Surface projection</span><span>Spacing</span></div>
+              <p>Draw a freehand guide or click connected segments with Motion Polygon. Work on the view plane, at the 3D Cursor, or across visible surfaces. Use Chosen Surface to project onto one mesh with an adjustable offset; pixel-based spacing keeps your strokes predictable at different scene scales.</p>
+              <div class="tag-list"><span>Freehand + Polygon</span><span>Chosen Surface</span><span>Surface offset</span><span>Pixel spacing</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-01.gif" alt="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-01.jpg" aria-label="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
+                <source src="assets/motion-painter-feature-01.mp4" type="video/mp4">
+              </video>
               <small>Motion Paint / Live preview</small>
             </div>
           </article>
@@ -971,12 +1063,14 @@
         <article class="feature feature-brushes">
           <div class="feature-copy">
             <div class="feature-number">02 / Motion brushes</div>
-              <h3>One stroke. Unlimited ways to move.</h3>
+              <h3>One stroke. Eleven starting points.</h3>
               <p>Start with a focused motion preset, then tune ordinary settings to make it yours. Save custom brushes in the blend file, update them, and copy or paste settings between paths.</p>
               <div class="tag-list"><span>Built-in presets</span><span>Custom brushes</span><span>Copy + paste</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-02.gif" alt="Multiple Blender objects following hand-drawn motion paths with editable animation curves">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-02.jpg" aria-label="Multiple Blender objects following hand-drawn motion paths with editable animation curves">
+                <source src="assets/motion-painter-feature-02.mp4" type="video/mp4">
+              </video>
               <small>Motion brushes / Multi-object flow</small>
             </div>
             <div class="brush-wall" aria-label="Included motion brush presets">
@@ -988,11 +1082,13 @@
             <div class="feature-copy">
               <div class="feature-number">03 / Motion modes</div>
               <h3>Follow the rail or feel the field.</h3>
-              <p>Rail mode places motion directly along your guide. Forcefield mode treats the stroke as a flowing influence, with pull, push, orbit, wave, jitter, slowdown, bend handling, and turn controls.</p>
+              <p>Rail mode follows your guide, with keys based on editable control points or distance spacing. Forcefield mode shapes movement around the stroke with pull, push, orbit, wave, and jitter. Start with a direct route, then give it your own character.</p>
               <div class="tag-list"><span>Rail</span><span>Forcefield</span><span>Orbit</span><span>Wave</span><span>Jitter</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-03.gif" alt="A Blender cube reacting to a painted forcefield motion path">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-03.jpg" aria-label="A Blender cube reacting to a painted forcefield motion path">
+                <source src="assets/motion-painter-feature-03.mp4" type="video/mp4">
+              </video>
               <small>Motion modes / Forcefield</small>
             </div>
           </article>
@@ -1004,8 +1100,10 @@
               <p>Stack multiple guides and decide how they interact. Takeover lets a higher path assume control over a smooth frame range; Add combines its flow with motion from lower paths.</p>
               <div class="tag-list"><span>Takeover</span><span>Add</span><span>Blend frames</span><span>Path order</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-04.gif" alt="A school of animated fish controlled together with Motion Painter in Blender">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-04.jpg" aria-label="A school of animated fish controlled together with Motion Painter in Blender">
+                <source src="assets/motion-painter-feature-04.mp4" type="video/mp4">
+              </video>
               <small>Stack + blend / Layered motion</small>
             </div>
           </article>
@@ -1014,11 +1112,13 @@
             <div class="feature-copy">
               <div class="feature-number">05 / Targets</div>
               <h3>Direct one object or a whole group.</h3>
-              <p>Automatically pick nearby objects from the start of a stroke in screen or 3D space. Add and exclude selected targets at any time, then select every target again with one click.</p>
-              <div class="tag-list"><span>Auto Select</span><span>Screen radius</span><span>3D radius</span><span>Add + exclude</span></div>
+              <p>Pick nearby objects automatically in screen or 3D space, or use your own selection. Hierarchy Roots targets the highest included parent when its children are also inside the brush. Add or exclude objects as you refine the group, with improved motion handling for animated parents.</p>
+              <div class="tag-list"><span>Auto Select</span><span>Hierarchy Roots</span><span>Parented objects</span><span>Add + exclude</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-05.gif" alt="Motion Painter selecting and animating the letters of its name inside Blender">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-05.jpg" aria-label="Motion Painter selecting and animating the letters of its name inside Blender">
+                <source src="assets/motion-painter-feature-05.mp4" type="video/mp4">
+              </video>
               <small>Targets / Group control</small>
             </div>
           </article>
@@ -1027,11 +1127,13 @@
             <div class="feature-copy">
               <div class="feature-number">06 / Rotation</div>
               <h3>Movement that knows where to look.</h3>
-              <p>Generate orientation from the final motion using Follow Direction, Look At Path, or Spin. Blend from the original pose, preserve an offset, bank into turns, and choose the exact local axes.</p>
+              <p>Face the final direction of travel, look toward the path, or add spin. Bank into turns and blend from the original pose, or use Keep Offset to preserve starting facing. Nose Axis, Roll Reference, and a labeled axis gizmo help you set up directional rotation.</p>
               <div class="tag-list"><span>Follow direction</span><span>Look at path</span><span>Spin</span><span>Banking</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-06.gif" alt="Animated Motion Painter lettering demonstrating directional movement and rotation in Blender">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-06.jpg" aria-label="Animated Motion Painter lettering demonstrating directional movement and rotation in Blender">
+                <source src="assets/motion-painter-feature-06.mp4" type="video/mp4">
+              </video>
               <small>Rotation / Directional motion</small>
             </div>
           </article>
@@ -1040,11 +1142,13 @@
             <div class="feature-copy">
               <div class="feature-number">07 / Curves + editing</div>
               <h3>Stay visual. Stay editable.</h3>
-              <p>Create a linked Blender 3D Curve from a guide, or build motion from a selected curve. Select paths in the viewport, erase control points, rename guides, change colors, reorder the stack, and toggle output previews.</p>
+              <p>Turn a guide into a linked Blender curve, or create a guide from an existing curve. Refine its shape with Blender's curve tools and let the animation update. Version 1.0 improves linked editing, follows evaluated NURBS centerlines, and includes the closing segment of cyclic polyline paths.</p>
               <div class="tag-list"><span>Linked curves</span><span>Motion Eraser</span><span>Motion Select</span><span>Guide display</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-07.gif" alt="Layered editable motion paths guiding a school of fish in Blender">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-07.jpg" aria-label="Layered editable motion paths guiding a school of fish in Blender">
+                <source src="assets/motion-painter-feature-07.mp4" type="video/mp4">
+              </video>
               <small>Curves + editing / Path stack</small>
             </div>
           </article>
@@ -1053,11 +1157,13 @@
             <div class="feature-copy">
               <div class="feature-number">08 / Clean output</div>
               <h3>Editable guides. Cleaner keyframes.</h3>
-              <p>Control speed, duration, spacing, smoothing, draw-speed influence, and turn velocity. Simplify generated location and rotation keys within chosen tolerances, or keep the keys and remove the guide when the motion is final.</p>
-              <div class="tag-list"><span>Key simplification</span><span>Linear F-curves</span><span>Speed colors</span><span>Keep keys</span></div>
+              <p>Simplify location and rotation keys within your chosen tolerances. Inspect movement with continuous speed colors and trace guide contributions with colored key outlines in the Timeline and Dope Sheet. Finalize the motion to keep ordinary Blender keys for further editing.</p>
+              <div class="tag-list"><span>Key simplification</span><span>Guide-colored keys</span><span>Speed colors</span><span>Keep keys</span></div>
             </div>
-            <div class="feature-media has-gif">
-              <img src="assets/motion-painter-feature-08.gif" alt="A Blender cube animated along a motion path with editable output controls">
+            <div class="feature-media has-video">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-08.jpg" aria-label="A Blender cube animated along a motion path with editable output controls">
+                <source src="assets/motion-painter-feature-08.mp4" type="video/mp4">
+              </video>
               <small>Clean output / Editable keys</small>
             </div>
           </article>
@@ -1066,12 +1172,67 @@
       </div>
     </section>
 
+    <section class="section" id="release-highlights">
+      <div class="shell">
+        <div class="section-head">
+          <span class="section-index">02 / Since the beta</span>
+          <h2 class="section-title">Draw on your scene. See every layer.</h2>
+          <p class="section-lead">Since the launch beta, Motion Painter has gained Chosen Surface drawing and guide-colored key overlays. The full release brings these new tools together with clearer paths, more timing control, and a stronger animation foundation.</p>
+        </div>
+        <div class="release-demos">
+          <article class="release-demo">
+            <div>
+              <span class="before-label">New / Chosen Surface</span>
+              <h3>Let the surface shape the journey.</h3>
+              <div class="demo-options" role="group" aria-label="Explore Chosen Surface">
+                <button type="button" aria-pressed="true" data-demo-copy="Choose a mesh and paint a route across its surface. The chosen mesh stays out of your animation targets.">Chosen Surface</button>
+                <button type="button" aria-pressed="false" data-demo-copy="Adjust Offset to lift your painted path away from the chosen mesh, following the surface normal.">Surface Offset</button>
+              </div>
+              <p class="demo-detail" aria-live="polite">Choose a mesh and paint a route across its surface. The chosen mesh stays out of your animation targets.</p>
+              <p>See it guide a car over uneven terrain. Inspired by a suggestion from our <a href="https://discord.gg/wcQZDxBPbT" target="_blank" rel="noopener noreferrer">Discord community</a>—join us and share your ideas.</p>
+            </div>
+            <figure>
+              <video controls muted playsinline loop preload="none" width="1080" height="1080" poster="assets/motion-painter-chosen-surface.jpg" aria-label="Chosen Surface demo: painting a car route across uneven terrain">
+                <source src="assets/motion-painter-chosen-surface.mp4" type="video/mp4">
+                <a href="assets/motion-painter-chosen-surface.mp4">Watch the Chosen Surface demo</a>.
+              </video>
+              <figcaption>Chosen Surface in action · 12 seconds · Silent loop.</figcaption>
+            </figure>
+          </article>
+          <article class="release-demo">
+            <div>
+              <span class="before-label">New / Colored key overlays</span>
+              <h3>Connect the keys to the motion.</h3>
+              <div class="demo-options" role="group" aria-label="Explore new visibility tools">
+                <button type="button" aria-pressed="true" data-demo-copy="Color Guide Keys matches Timeline and Dope Sheet key outlines to their guides. Stacked contributions show multiple colors.">Colored Keys</button>
+                <button type="button" aria-pressed="false" data-demo-copy="Paths In Front keeps your guides visible through scene geometry. Switch it off to let paths respect depth instead.">Paths In Front</button>
+              </div>
+              <p class="demo-detail" aria-live="polite">Color Guide Keys matches Timeline and Dope Sheet key outlines to their guides. Stacked contributions show multiple colors.</p>
+              <p>Also shown: existing Simplify Keyframes, Speed Colors, Visible Padding, and the Motion Guide layer system.</p>
+            </div>
+            <figure>
+              <video controls muted playsinline loop preload="none" width="1080" height="1080" poster="assets/motion-painter-visibility.jpg" aria-label="Visibility demo: colored key overlays, paths in front, keyframe simplification, speed colors, visible padding, and guide layers">
+                <source src="assets/motion-painter-visibility.mp4" type="video/mp4">
+                <a href="assets/motion-painter-visibility.mp4">Watch the visibility demo</a>.
+              </video>
+              <figcaption>Key overlays and visibility tools · 16 seconds · Silent loop.</figcaption>
+            </figure>
+          </article>
+        </div>
+        <div class="release-grid">
+          <article class="before-card"><span class="before-label">Timing</span><h3>Shape the pace, too.</h3><p>Preserve the rhythm of your stroke with Draw Speed. Brake before bends with Turn Slowdown and control recovery with Acceleration. Forcefield Speed Up and Slow Down adjust the start and finish without changing the trajectory.</p></article>
+          <article class="before-card"><span class="before-label">Existing animation</span><h3>Refine with more confidence.</h3><p>Improved ownership tracking restores displaced source keys when generated motion is removed. Shared actions are copied before writing, so animating one target does not change another object using the same action.</p></article>
+          <article class="before-card"><span class="before-label">Everyday editing</span><h3>Keep your changes in step.</h3><p>Undo and redo keep guide settings and generated animation consistent. Failed rebuilds restore the previous result, while linked-curve edits and parented motion previews update more reliably.</p></article>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="roadmap">
       <div class="shell">
         <div class="section-head">
-          <span class="section-index">02 / Roadmap</span>
+          <span class="section-index">03 / Roadmap</span>
           <h2 class="section-title">Motion Painter is just getting started.</h2>
-          <p class="section-lead">Object animation is the foundation. Future modes will expand the same paint-first workflow into character motion and Blender's physics systems.</p>
+          <p class="section-lead">Object animation is the foundation of v1.0. Rig Mode is planned, and Physics Mode is experimental: two directions for extending the same visual workflow.</p>
         </div>
         <div class="roadmap-grid">
           <article class="roadmap-card current">
@@ -1087,9 +1248,9 @@
             <span class="roadmap-order">02</span>
           </article>
           <article class="roadmap-card physics">
-            <span class="roadmap-status">Planned</span>
+            <span class="roadmap-status">Experimental</span>
             <h3>Physics Mode</h3>
-            <p>Connect painted motion with Blender rigid bodies, force fields, and related physics systems for art-directed simulations that still feel alive.</p>
+            <p>Exploring connections between painted motion, Blender rigid bodies, and force fields for art-directed simulations. This experimental direction is separate from the released object-animation tools.</p>
             <span class="roadmap-order">03</span>
           </article>
         </div>
@@ -1099,23 +1260,29 @@
     <section class="section before-buy" id="before-you-buy">
       <div class="shell">
         <div class="section-head">
-          <span class="section-index">03 / Before you buy</span>
-          <h2 class="section-title">Early access, clearly stated.</h2>
-          <p class="section-lead">Motion Painter is currently a beta product offered at a 33% Early Access discount. Please purchase with the expectations below in mind.</p>
+          <span class="section-index">04 / Good to know</span>
+          <h2 class="section-title">Fits your Blender workflow.</h2>
+          <p class="section-lead">Create with procedural guides, then take the finished motion into Blender's own animation tools.</p>
         </div>
         <div class="before-grid">
           <article class="before-card">
-            <span class="before-label">Beta software</span>
-            <h3>Powerful now. Still evolving.</h3>
-            <p>This is an Early Access release under active development. You may encounter bugs, rough edges, or workflows that change as the addon improves. If you find a bug, <a href="https://discord.gg/wcQZDxBPbT" target="_blank" rel="noopener noreferrer">join the Motion Painter Discord</a> to report it, share feedback, and help shape the next update.</p>
+            <span class="before-label">Compatibility</span>
+            <h3>Built for object animation.</h3>
+            <p>Requires Blender 4.5 LTS or newer. Paint in Object Mode to generate location and optional rotation keys. Forcefield is a procedural motion mode; the separate Physics Mode remains experimental.</p>
           </article>
           <article class="before-card">
             <span class="before-label">Development disclosure</span>
             <h3>Artist-directed, AI-assisted.</h3>
-            <p><em>it is developed using an AI-assisted workflow, directed and quality-tested by an experienced Blender artist.</em></p>
+            <p>Developed using an AI-assisted workflow, directed and quality-tested by an experienced Blender artist.</p>
           </article>
         </div>
-        <p class="early-access-note"><strong>The -33% discount reflects the Early Access stage.</strong> Your Early Access purchase includes future updates, including later versions that may be sold without this discount. By purchasing now, you are choosing to use Motion Painter while it is still being refined and accepting that some bugs may be present.</p>
+        <div class="release-faq">
+          <details><summary>Can I edit the generated keyframes?</summary><p>Yes. Active guides manage their generated keys and can rebuild them when you change the setup. When you want to continue by hand, use <strong>Keep Keys, Remove Path</strong>. Guides connected through shared targets are finalized together, preserving their combined animation.</p></details>
+          <details><summary>Can I animate large groups?</summary><p>Use manual selection or Auto Select, with Hierarchy Roots to avoid targeting both included parents and children. New strokes have a 256-target limit and additional workload checks. If a stroke exceeds the limits, reduce the targets, shorten the path, or increase its speed.</p></details>
+          <details><summary>How long are support and updates included?</summary><p>Your purchase includes a <strong>12-month Superhive Support Period</strong> from the purchase date, including purchases made during the launch sale. It covers creator support and product updates released during that period. You keep permanent access to the versions received during your Support Period.</p><p>When it ends, you can keep using those versions. Renewing for another 12 months is optional, at the renewal price shown on Superhive. This is not a subscription: there are no automatic renewals. <a href="https://support.superhivemarket.com/article/340-support-periods-overview" target="_blank" rel="noopener noreferrer">How Superhive Support Periods work</a>.</p><p>Existing purchases retain the support and update terms offered at the time of purchase.</p></details>
+          <details><summary>Where can I get help?</summary><p>For product support during your Support Period, contact me through your <strong>Superhive inbox</strong>. You can also <a href="https://discord.gg/wcQZDxBPbT" target="_blank" rel="noopener noreferrer">join the Motion Painter Discord</a> for community discussion, bug reports, and feedback. Include your Blender and Motion Painter versions when reporting an issue.</p></details>
+        </div>
+        <p class="early-access-note" data-launch-offer><strong>Celebrate the full release with 33% off.</strong> Sale ends <time data-local-deadline datetime="2026-09-23T15:00:00Z">September 23, 2026 · 15:00 UTC</time>.</p>
       </div>
     </section>
 
@@ -1124,11 +1291,194 @@
         <p class="eyebrow">Motion design, at the speed of a stroke</p>
         <h2>Draw the path.<br><span class="gradient-text">Direct the motion.</span></h2>
         <p>Motion Painter makes object animation feel immediate, visual, and playful while keeping the control needed for serious Blender work.</p>
+        <p class="closing-offer" data-launch-offer><strong>V1 launch · 33% OFF</strong><br>Ends <time data-local-deadline datetime="2026-09-23T15:00:00Z">September 23, 2026 · 15:00 UTC</time>.</p>
+        <a class="release-button" href="#film">Watch Motion Painter in action</a>
       </div>
     </section>
   </main>
 
   <script>
+    (() => {
+      const cards = document.querySelectorAll('#release-highlights .release-grid .before-card');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      const visible = new Set();
+      const sync = () => cards.forEach(card => card.classList.toggle('is-visible', visible.has(card) && !document.hidden));
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        });
+        sync();
+      });
+      cards.forEach(card => {
+        observer.observe(card);
+        card.addEventListener('click', () => {
+          if (reduced.matches) return;
+          card.getAnimations().forEach(animation => animation.cancel());
+          const accent = getComputedStyle(card).getPropertyValue('--card-accent').trim();
+          card.animate([
+            { boxShadow: `inset 0 0 0 0 ${accent}` },
+            { boxShadow: `inset 0 0 22px -8px ${accent}`, offset: .25 },
+            { boxShadow: 'inset 0 0 0 0 transparent' }
+          ], { duration: 550, easing: 'ease-out' });
+        });
+      });
+      document.addEventListener('visibilitychange', sync);
+    })();
+    (() => {
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      document.querySelectorAll('.release-demo').forEach(card => {
+        const detail = card.querySelector('.demo-detail');
+        const video = card.querySelector('video');
+        const animateOnce = (element, frames, options) => {
+          element.getAnimations().forEach(animation => animation.cancel());
+          element.animate(frames, options);
+        };
+        video.addEventListener('pointerenter', () => {
+          if (reduced.matches) return;
+          const color = getComputedStyle(card).getPropertyValue('--demo-color').trim();
+          animateOnce(video, [
+            { boxShadow: `0 0 0 0 ${color}` },
+            { boxShadow: `0 0 24px 3px ${color}`, offset: .35 },
+            { boxShadow: `0 0 0 0 transparent` }
+          ], { duration: 650, easing: 'ease-out' });
+        });
+        card.addEventListener('pointermove', event => {
+          if (reduced.matches || event.pointerType === 'touch') return;
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--demo-x', `${event.clientX - rect.left}px`);
+          card.style.setProperty('--demo-y', `${event.clientY - rect.top}px`);
+        }, { passive: true });
+        card.querySelectorAll('[data-demo-copy]').forEach(button => {
+          button.addEventListener('click', () => {
+            card.querySelectorAll('[data-demo-copy]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            detail.textContent = button.dataset.demoCopy;
+            if (reduced.matches) return;
+            animateOnce(detail, [
+              { opacity: .25, transform: 'translateY(7px)' },
+              { opacity: 1, transform: 'translateY(0)' }
+            ], { duration: 280, easing: 'ease-out' });
+            animateOnce(button, [
+              { scale: '1' }, { scale: '.94', offset: .2 },
+              { scale: '1.06', offset: .6 }, { scale: '1' }
+            ], { duration: 320, easing: 'ease-out' });
+            // A short key-shaped burst; no persistent animation loop or particle buildup.
+            card.querySelectorAll('.demo-spark').forEach(spark => spark.remove());
+            const bounds = card.getBoundingClientRect();
+            const origin = button.getBoundingClientRect();
+            for (let i = 0; i < 6; i++) {
+              const spark = document.createElement('span');
+              spark.className = 'demo-spark';
+              spark.setAttribute('aria-hidden', 'true');
+              spark.style.left = `${origin.left - bounds.left + origin.width / 2}px`;
+              spark.style.top = `${origin.top - bounds.top + origin.height / 2}px`;
+              card.append(spark);
+              const angle = i * Math.PI / 3;
+              const flight = spark.animate([
+                { transform: 'translate(-50%,-50%) rotate(45deg) scale(.5)', opacity: 1 },
+                { transform: `translate(${Math.cos(angle) * 48}px,${Math.sin(angle) * 36}px) rotate(135deg) scale(0)`, opacity: 0 }
+              ], { duration: 480, easing: 'ease-out' });
+              flight.finished.then(() => spark.remove(), () => spark.remove());
+            }
+          });
+        });
+      });
+    })();
+    // Load nearby demos and share a two-player budget across all local videos.
+    (() => {
+      const videos = [...document.querySelectorAll('.feature-media video, .release-demo video')];
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      const connection = navigator.connection;
+      const visible = new Map();
+      const userPaused = new Set();
+      const managedPauses = new WeakSet();
+      const manualPlay = new Set();
+      const autoAllowed = () => !reduced.matches && !connection?.saveData;
+      const pause = video => {
+        if (!video.paused) {
+          managedPauses.add(video);
+          video.pause();
+        }
+      };
+      const sync = () => {
+        const active = document.hidden ? [] : [...visible]
+          .filter(([video, ratio]) => ratio >= .15 && !userPaused.has(video) &&
+            (autoAllowed() || manualPlay.has(video)))
+          .sort((a, b) => Number(manualPlay.has(b[0])) - Number(manualPlay.has(a[0])) || b[1] - a[1])
+          .slice(0, 2).map(([video]) => video);
+        videos.forEach(video => {
+          if (!active.includes(video)) pause(video);
+          else if (video.paused) video.play().catch(() => {});
+        });
+      };
+      const nearby = new IntersectionObserver(entries => {
+        entries.forEach(({ target: video, isIntersecting }) => {
+          if (isIntersecting && autoAllowed()) {
+            video.preload = 'auto';
+            nearby.unobserve(video);
+          }
+        });
+      }, { rootMargin: '200px' });
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) visible.set(entry.target, entry.intersectionRatio);
+          else {
+            visible.delete(entry.target);
+            manualPlay.delete(entry.target);
+          }
+        });
+        sync();
+      }, { threshold: [0, .15, .5, .75, 1] });
+      videos.forEach(video => {
+        nearby.observe(video);
+        observer.observe(video);
+        video.addEventListener('pause', () => {
+          if (managedPauses.has(video)) managedPauses.delete(video);
+          else {
+            userPaused.add(video);
+            manualPlay.delete(video);
+          }
+        });
+        video.addEventListener('play', () => {
+          // A native Play action also works when automatic motion is disabled.
+          if (userPaused.delete(video) || !autoAllowed()) manualPlay.add(video);
+          sync();
+        });
+      });
+      document.addEventListener('visibilitychange', sync);
+      const preferencesChanged = () => { manualPlay.clear(); sync(); };
+      reduced.addEventListener('change', preferencesChanged);
+      connection?.addEventListener('change', preferencesChanged);
+    })();
+    // One fixed deadline worldwide: September 23, 17:00 Brussels = 15:00 UTC.
+    (() => {
+      const end = Date.parse("2026-09-23T17:00:00+02:00");
+      const countdown = document.querySelector('[data-countdown]');
+      const toggle = document.querySelector('[data-marquee-toggle]');
+      const banner = document.querySelector('.release-offer');
+      const fields = ['days', 'hours', 'minutes', 'seconds'].map(unit => document.querySelector(`[data-${unit}]`));
+      const localDeadline = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date(end));
+      document.querySelectorAll('[data-local-deadline]').forEach(el => { el.textContent = localDeadline + ' (your local time)'; });
+      toggle.addEventListener('click', () => {
+        const paused = banner.classList.toggle('is-paused');
+        toggle.setAttribute('aria-pressed', String(paused));
+        toggle.textContent = paused ? 'Resume scrolling banner' : 'Pause scrolling banner';
+      });
+      const refreshOffer = () => {
+        const remaining = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+        const expired = remaining === 0;
+        document.querySelectorAll('[data-launch-offer]').forEach(el => { el.hidden = expired; });
+        document.querySelectorAll('[data-evergreen]').forEach(el => { el.hidden = !expired; });
+        countdown.hidden = expired;
+        toggle.hidden = expired;
+        const values = [Math.floor(remaining / 86400), Math.floor(remaining / 3600) % 24, Math.floor(remaining / 60) % 60, remaining % 60];
+        fields.forEach((field, index) => { field.textContent = String(values[index]).padStart(2, '0'); });
+      };
+      refreshOffer();
+      setInterval(refreshOffer, 1000);
+      document.addEventListener('visibilitychange', refreshOffer);
+    })();
+
     (() => {
       const hero = document.querySelector("#hero-animation");
       const canvas = document.querySelector("#hero-trails");
