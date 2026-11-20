@@ -283,8 +283,6 @@
     .feature:nth-child(even) .feature-copy { order: 2; }
     .feature:nth-child(even) .feature-media { order: 1; }
 
-    .feature-paths .feature-copy { grid-column: 1 / -1; max-width: 810px; }
-
     .feature-topic {
       margin-bottom: 12px;
       color: var(--cyan);
@@ -616,7 +614,7 @@
         <h2 class="hero-title">Stop plotting motion.<br><span class="gradient-text">Paint it.</span></h2>
         <p class="hero-description">Draw a path in Blender’s 3D Viewport and turn it into editable object animation.</p>
         <figure class="feature-media hero-demo" id="paper-plane-demo">
-          <video controls muted playsinline preload="none" width="1280" height="720" poster="assets/motion-painter-hero-poster.jpg" aria-label="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
+          <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-hero-poster.jpg" aria-label="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
             <source src="assets/motion-painter-feature-01.mp4" type="video/mp4">
           </video>
           <figcaption>A hand-drawn path sends the paper plane through a loop.</figcaption>
@@ -658,13 +656,19 @@
         </div>
 
         <div class="feature-list">
-        <article class="feature feature-paths">
+        <article class="feature">
             <div class="feature-copy">
               <div class="feature-topic">Paint paths</div>
               <h3>Draw motion directly in the viewport.</h3>
-              <p>Draw a freehand guide or click connected segments with Motion Polygon. Work on the view plane, at the 3D Cursor, or across visible surfaces. Use Chosen Surface to project onto one mesh with an adjustable offset; pixel-based spacing keeps your strokes predictable at different scene scales. <a href="#paper-plane-demo">See the paper-plane demo</a>.</p>
+              <p>Draw a freehand guide or click connected segments with Motion Polygon. Work on the view plane, at the 3D Cursor, or across visible surfaces. Use Chosen Surface to project onto one mesh with an adjustable offset; pixel-based spacing keeps your strokes predictable at different scene scales.</p>
               <div class="tag-list"><span>Freehand + Polygon</span><span>Chosen Surface</span><span>Surface offset</span><span>Pixel spacing</span></div>
             </div>
+            <figure class="feature-media">
+              <video controls muted playsinline loop preload="none" width="1280" height="720" poster="assets/motion-painter-feature-01.jpg" aria-label="Motion Painter drawing a motion path that guides a paper airplane through Blender's 3D Viewport">
+                <source src="assets/motion-painter-feature-01.mp4" type="video/mp4">
+              </video>
+              <figcaption>Motion Paint / Live preview</figcaption>
+            </figure>
           </article>
 
         <article class="feature feature-brushes">
@@ -897,9 +901,9 @@
   </main>
 
   <script>
-    // Load nearby workflow demos and share a two-player budget across them.
+    // Load nearby demos and share a two-player budget across all local videos.
     (() => {
-      const videos = [...document.querySelectorAll('.feature .feature-media video, .release-demo video')];
+      const videos = [...document.querySelectorAll('.feature-media video, .release-demo video')];
       const reduced = matchMedia('(prefers-reduced-motion: reduce)');
       const connection = navigator.connection;
       const visible = new Map();
